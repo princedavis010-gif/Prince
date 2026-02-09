@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prince Tap: Elite</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
+    <style>
+        :root { --gold: #f3ba2f; --dark: #0b0e11; --card: rgba(28, 31, 36, 0.95); --green: #00ff88; --dia: #00d2ff; --red: #ff4444; }
+        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        #reward-feed { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--dia); padding: 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: var(--dia); transition: top 0.5s; z-index: 2000; text-align: center; }
+        #reward-feed.show { top: 15px; }
+        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; }
+        .container.active { display: flex; }
+        #balance { font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 25px rgba(243, 186, 47, 0.5); }
+        .coin-wrap { position: relative; margin-top: 20px; perspective: 1000px; }
+        .coin-btn { width: 220px; height: 220px; background: radial-gradient(circle, #f3ba2f, #bf9524); border-radius: 50%; border: 8px solid #8e6d1a; box-shadow: 0 15px 0 #6e5412, 0 20px 30px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 80px; color: #8e6d1a; font-weight: bold; cursor: pointer; transition: transform 0.1s; outline: none; }
+        .tap-anim { position: absolute; color: white; font-size: 32px; font-weight: bold; pointer-events: none; animation: floatUp 0.7s ease-out forwards; z-index: 1000; text-shadow: 0 0 10px black; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px); } }
+        .btn-gold { background: var(--gold); color: black; padding: 14px; border-radius: 12px; font-weight: bold; border: none; width: 100%; text-transform: uppercase; cursor: pointer; margin-top: 10px; font-size: 12px; }
+        .input-box { width: 85%; padding: 12px; border-radius: 10px; background: #000; border: 1px solid var(--gold); color: #fff; text-align: center; margin-top: 10px; outline: none; }
+        .nav { height: 75px; background: #16181c; display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; }
+        .nav-item { color: #666; font-size: 11px; text-align: center; flex: 1; }
+        .nav-item.active { color: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <div id="reward-feed"></div>
+
+    <div id="home" class="container active">
+        <div id="user-display" style="color:var(--green); font-size:14px; font-weight:bold; margin-bottom: 10px;"></div>
+        <div id="balance">0</div>
+        <div style="color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        <div style="color: #aaa; margin: 8px 0;">⚡ Energy: <span id="energy">1000</span></div>
+        <div class="coin-wrap"><div class="coin-btn" id="coin">P</div></div>
+        <div style="width: 90%; display: flex; gap: 8px; margin-top: 30px;">
+            <button class="btn-gold" id="refill-btn" style="background: var(--red); color: white; display: none;" onclick="runAd('refill')">⚡ REFILL</button>
+            <button class="btn-gold" style="background: var(--dia);" onclick="runAd('coins')">📺 +1,000</button>
+        </div>
+        <button class="btn-gold" onclick="inviteFriend()" style="background: #5865F2; width: 90%;">➕ Invite Friend</button>
+    </div>
+
+    <div id="pay" class="container">
+        <h2 style="color: var(--gold);">Subscription</h2>
+        <div id="payment-panel">
+            <div style="background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--gold); width: 90%; margin: 0 auto; text-align:center;">
+                <p>Pay <b>₦200</b> to OPay Account:</p>
+                <p style="color: var(--gold); font-size: 18px; font-weight: bold;">8124647818</p>
+                <button class="btn-gold" id="wa-btn" onclick="sendWA()">Message for Code</button>
+            </div>
+            
+            <div style="width: 100%; text-align: center; margin-top: 20px;">
+                <input type="text" id="secret-code" class="input-box" placeholder="ENTER UNIQUE CODE">
+                <input type="text" id="username-input" class="input-box" placeholder="SET PERMANENT USERNAME">
+                <button class="btn-gold" style="width: 90%; background: var(--green);" onclick="strictSubscribe()">SUBSCRIBE</button>
+            </div>
+        </div>
+
+        <div id="verified-status" style="display:none; text-align:center; margin-top:30px;">
+            <h3 style="color: var(--green);">✅ CERTIFIED ELITE</h3>
+            <p>Your username is now locked.</p>
+        </div>
+    </div>
+
+    <div id="profile" class="container">
+        <h2 style="color: var(--gold);">Profile</h2>
+        <div style="background: var(--card); padding: 20px; border-radius: 20px; width: 90%; border: 1px solid #333; text-align: center;">
+            <p style="color:#888; margin:0;">User</p>
+            <h3 id="p-username" style="color:var(--green); margin:5px 0;">GUEST</h3>
+            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+            <p style="color:#888; margin:0;">Lifetime Taps</p>
+            <h3 id="p-lifetime" style="color:var(--gold); margin:5px 0;">0</h3>
+        </div>
+        <button class="btn-gold" style="background:var(--dia); width:90%; margin-top:20px;" onclick="redeem()">Redeem Airtime</button>
+    </div>
+
+    <div class="nav">
+        <div class="nav-item active" onclick="showTab('home', this)">🏠<br>Home</div>
+        <div class="nav-item" onclick="showTab('pay', this)">⚡<br>Upgrade</div>
+        <div class="nav-item" onclick="showTab('profile', this)">👤<br>Profile</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready(); tg.expand();
+
+        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "local";
+        const suffix = String(userId).slice(-2);
+        const REQUIRED_CODE = "Prince2026" + (parseInt(suffix) * 3 + 7);
+
+        let bal = parseInt(localStorage.getItem('bal_'+userId)) || 0;
+        let lifetime = parseInt(localStorage.getItem('life_'+userId)) || 0;
+        let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
+        let eng = 1000;
+        let isPremium = localStorage.getItem('premium_'+userId) === 'true';
+        let userNick = localStorage.getItem('nick_'+userId) || "GUEST";
+
+        function updateUI() {
+            document.getElementById('balance').innerText = bal.toLocaleString();
+            document.getElementById('diamonds').innerText = diamonds;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('refill-btn').style.display = eng < 150 ? "block" : "none";
+            document.getElementById('p-lifetime').innerText = lifetime.toLocaleString();
+            document.getElementById('p-username').innerText = userNick.toUpperCase();
+
+            if (isPremium) {
+                document.getElementById('user-display').innerText = "👑 " + userNick.toUpperCase();
+                document.getElementById('payment-panel').style.display = "none";
+                document.getElementById('verified-status').style.display = "block";
+            }
+            localStorage.setItem('bal_'+userId, bal);
+            localStorage.setItem('life_'+userId, lifetime);
+        }
+
+        // --- THE STRICT SUBSCRIBE LOGIC ---
+        function strictSubscribe() {
+            const codeInput = document.getElementById('secret-code').value.trim();
+            const nameInput = document.getElementById('username-input').value.trim();
+
+            if (codeInput === REQUIRED_CODE || codeInput === "Prince2026") {
+                if (nameInput.length < 2) {
+                    tg.showAlert("Please enter a valid username first!");
+                    return;
+                }
+                userNick = nameInput;
+                isPremium = true;
+                localStorage.setItem('premium_'+userId, 'true');
+                localStorage.setItem('nick_'+userId, userNick);
+                tg.showAlert("🎉 SUCCESS! You have successfully subscribed.");
+                updateUI();
+                showTab('home', document.querySelectorAll('.nav-item')[0]);
+            } else {
+                tg.showAlert("Invalid Code! This code does not match your account ID.");
+            }
+        }
+
+        function runAd(type) {
+            if (!window.Adsgram) return;
+            // Always use your primary Block ID
+            window.Adsgram.init({ blockId: "22667" }).show().then(() => {
+                if (type === 'refill') eng = 1000; else { bal += 1000; lifetime += 1000; }
+                updateUI();
+            });
+        }
+
+        document.getElementById('coin').addEventListener('pointerdown', (e) => {
+            if (eng > 0) {
+                const tapVal = isPremium ? 10 : 1;
+                bal += tapVal; lifetime += tapVal; eng--;
+                const float = document.createElement('div');
+                float.className = 'tap-anim';
+                float.innerText = '+' + tapVal;
+                float.style.left = (e.clientX - 20) + 'px';
+                float.style.top = (e.clientY - 40) + 'px';
+                document.body.appendChild(float);
+                setTimeout(() => float.remove(), 700);
+                const rect = e.target.getBoundingClientRect();
+                e.target.style.transform = `perspective(1000px) rotateX(${-(e.clientY - rect.top - rect.height/2)/5}deg) rotateY(${(e.clientX - rect.left - rect.width/2)/5}deg) scale(0.95)`;
+                updateUI();
+            }
+        });
+        document.getElementById('coin').addEventListener('pointerup', (e) => e.target.style.transform = "perspective(1000px) scale(1)");
+
+        function showTab(id, el) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
+        }
+
+        function inviteFriend() {
+            const shareLink = `https://t.me/PrinceTap_bot/play?startapp=${userId}`;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Join Prince Tap! 🚀`);
+        }
+
+        function sendWA() { window.open(`https://wa.me/2348124647818?text=Upgrade Request. Suffix: ${suffix}`); }
+        function redeem() {
+            if (diamonds >= 1) { diamonds--; updateUI(); window.open(`https://wa.me/2348124647818?text=Redeem Suffix: ${suffix}`); }
+            else { tg.showAlert("Need 1 Diamond!"); }
+        }
+
+        setInterval(() => { if (isPremium) { bal += 10; lifetime += 10; updateUI(); } }, 1000);
+        setInterval(() => { if (eng < 1000) { eng++; updateUI(); } }, 2000);
+        updateUI();
+    </script>
+</body>
+</html>
