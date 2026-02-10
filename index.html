@@ -7,80 +7,104 @@
     <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #f3ba2f; --dark: #0b0e11; --card: rgba(28, 31, 36, 0.95); --green: #00ff88; --dia: #00d2ff; --red: #ff4444; }
-        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
-        #reward-feed { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--dia); padding: 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: var(--dia); transition: top 0.5s; z-index: 2000; text-align: center; pointer-events: none; }
-        #reward-feed.show { top: 15px; }
+        :root { --gold: #f3ba2f; --dark-gold: #8e6d1a; --shine: rgba(255,255,255,0.4); --dark: #0b0e11; --green: #00ff88; --dia: #00d2ff; }
+        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: radial-gradient(circle at center, #1c1f24 0%, #0b0e11 100%); user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        
+        #balance { font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(243, 186, 47, 0.4); margin-top: 10px; }
+
+        /* --- THE STYLISH 3D COIN --- */
+        .coin-wrap { position: relative; margin: 25px 0; display: flex; justify-content: center; align-items: center; width: 100%; perspective: 1000px; }
+        
+        .coin-btn { 
+            width: 280px; height: 280px; 
+            /* Multi-layer gradient for metallic texture */
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 100%),
+                radial-gradient(circle at 30% 30%, #ffe08a 0%, #f3ba2f 40%, #bf9524 70%, #8e6d1a 100%);
+            border-radius: 50%; 
+            /* Diamond-cut outer rim */
+            border: 4px solid #5c4711;
+            outline: 8px solid var(--gold);
+            outline-offset: -12px;
+            
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.8), 
+                inset 0 2px 5px var(--shine),
+                inset 0 -5px 15px rgba(0,0,0,0.4);
+            
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 130px; color: #5c4711; font-weight: 900; 
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.2), -1px -1px 0px rgba(0,0,0,0.5);
+            cursor: pointer; transition: transform 0.1s, box-shadow 0.3s; 
+            transform-origin: center center;
+        }
+
+        /* Glowing Pulse when Energy is high */
+        .coin-btn.glow { animation: goldPulse 2s infinite; }
+        @keyframes goldPulse {
+            0% { box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0px rgba(243, 186, 47, 0); }
+            50% { box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(243, 186, 47, 0.4); }
+            100% { box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0px rgba(243, 186, 47, 0); }
+        }
+
+        .tap-anim { position: absolute; color: white; font-size: 38px; font-weight: 900; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 1000; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-150px) scale(1.2); } }
+
+        /* UI ELEMENTS */
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; }
         .container.active { display: flex; }
-        #balance { font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 25px rgba(243, 186, 47, 0.5); }
-        .coin-wrap { position: relative; margin: 30px 0; display: flex; justify-content: center; align-items: center; width: 100%; perspective: 1000px; }
-        .coin-btn { width: 220px; height: 220px; background: radial-gradient(circle, #f3ba2f, #bf9524); border-radius: 50%; border: 8px solid #8e6d1a; box-shadow: 0 15px 0 #6e5412, 0 20px 30px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 80px; color: #8e6d1a; font-weight: bold; cursor: pointer; transition: transform 0.1s; outline: none; transform-origin: center center; }
-        .tap-anim { position: absolute; color: white; font-size: 32px; font-weight: bold; pointer-events: none; animation: floatUp 0.7s ease-out forwards; z-index: 1000; text-shadow: 0 0 10px black; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px); } }
-        .btn-gold { background: var(--gold); color: black; padding: 14px; border-radius: 12px; font-weight: bold; border: none; width: 90%; text-transform: uppercase; cursor: pointer; margin-top: 10px; font-size: 12px; }
-        .input-box { width: 85%; padding: 12px; border-radius: 10px; background: #000; border: 1px solid var(--gold); color: #fff; text-align: center; margin-top: 10px; outline: none; }
-        .nav { height: 75px; background: #16181c; display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; z-index: 3000; }
-        .nav-item { color: #666; font-size: 11px; text-align: center; flex: 1; cursor: pointer; }
+        .btn-gold { background: linear-gradient(to bottom, #f3ba2f, #bf9524); color: #403108; padding: 15px; border-radius: 14px; font-weight: 800; border: none; width: 90%; text-transform: uppercase; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 0 #8e6d1a; }
+        .btn-gold:active { transform: translateY(2px); box-shadow: 0 2px 0 #8e6d1a; }
+        .nav { height: 75px; background: rgba(22, 24, 28, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; z-index: 3000; }
+        .nav-item { color: #666; font-size: 11px; text-align: center; flex: 1; }
         .nav-item.active { color: var(--gold); }
     </style>
 </head>
 <body>
 
-    <div id="reward-feed"></div>
-
     <div id="home" class="container active">
-        <div id="user-display" style="color:var(--green); font-size:14px; font-weight:bold; margin-bottom: 5px;"></div>
+        <div id="user-display" style="color:var(--green); font-size:14px; letter-spacing:1px;"></div>
         <div id="balance">0</div>
-        <div style="color: var(--dia); font-weight: bold; margin-bottom: 10px;">💎 <span id="diamonds">0</span> Diamonds</div>
-        <div style="color: #aaa; margin-bottom: 10px;">⚡ Energy: <span id="energy">1000</span></div>
-        <div class="coin-wrap"><div class="coin-btn" id="coin">P</div></div>
-        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <button class="btn-gold" id="refill-btn" style="background: var(--red); color: white; display: none;" onclick="runAd('refill')">⚡ REFILL ENERGY</button>
-            <button class="btn-gold" style="background: var(--dia);" onclick="runAd('coins')">📺 WATCH AD (+1,000)</button>
-            <button class="btn-gold" onclick="inviteFriend()" style="background: #5865F2;">➕ INVITE FRIENDS</button>
+        <div style="color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        <div style="color: #888; margin: 5px 0;">⚡ <span id="energy">1000</span> / 1000</div>
+        
+        <div class="coin-wrap">
+            <div class="coin-btn glow" id="coin">P</div>
         </div>
+        
+        <button class="btn-gold" style="background: #ff4444; color:white; display:none;" id="refill-btn" onclick="runAd('refill')">⚡ Instant Refill</button>
+        <button class="btn-gold" style="background: var(--dia); color: #004a5c;" onclick="runAd('coins')">📺 Claim +1,000 Coins</button>
+        <button class="btn-gold" onclick="inviteFriend()" style="background: #5865F2; color:white;">➕ Invite Partners</button>
     </div>
 
     <div id="pay" class="container">
-        <h2 style="color: var(--gold);">Subscription</h2>
-        <div id="sub-locked-view" style="display:none; text-align: center; width: 100%;">
-            <div style="background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--green); width: 85%; margin: 0 auto;">
-                <h3 style="color: var(--green); margin:0;">✅ CERTIFIED ELITE</h3>
-                <p>Premium Activated</p>
-                <p style="font-size: 12px; color: #888;">Status: 10x Tap Power Enabled</p>
-            </div>
-        </div>
+        <h2 style="color: var(--gold);">Upgrade Center</h2>
         <div id="sub-active-view" style="width: 100%; text-align: center;">
-            <div style="background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--gold); width: 85%; margin: 0 auto;">
-                <p>Pay <b>₦200</b> for Premium</p>
-                <p style="color: var(--gold); font-size: 20px; font-weight: bold; margin: 10px 0;">OPay: 8124647818</p>
-                <button class="btn-gold" onclick="sendWA()" style="width: 100%;">Get Activation Code</button>
+            <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; border: 1px solid var(--gold); width: 85%; margin: 0 auto;">
+                <p>Get **Premium** for 10x Multiplier</p>
+                <p style="color: var(--gold); font-size: 20px; font-weight: bold;">OPay: 8124647818</p>
+                <button class="btn-gold" onclick="sendWA()">Request Code</button>
             </div>
-            <div style="margin-top: 25px;">
-                <input type="text" id="secret-code" class="input-box" placeholder="ENTER CODE">
-                <input type="text" id="username-input" class="input-box" placeholder="SET USERNAME">
-                <button class="btn-gold" style="background: var(--green); margin-top: 15px;" onclick="strictSubscribe()">ACTIVATE PREMIUM</button>
-            </div>
+            <input type="text" id="secret-code" class="btn-gold" style="background:#000; color:#fff; border:1px solid #333;" placeholder="Verification Code">
+            <input type="text" id="username-input" class="btn-gold" style="background:#000; color:#fff; border:1px solid #333;" placeholder="Choose Username">
+            <button class="btn-gold" style="background: var(--green);" onclick="strictSubscribe()">Activate Now</button>
         </div>
+        <div id="sub-locked-view" style="display:none; color:var(--green);"><h3>✅ ELITE MEMBER</h3></div>
     </div>
 
     <div id="profile" class="container">
-        <h2 style="color: var(--gold);">Profile</h2>
-        <div style="background: var(--card); padding: 20px; border-radius: 20px; width: 90%; margin-top: 15px; border: 1px solid #333; text-align: center;">
-            <p style="color:#888; margin:0;">Account Name</p>
-            <h3 id="p-username" style="color:var(--green); margin:5px 0; font-size:24px;">GUEST</h3>
-            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-            <p style="color:#888; margin:0;">Lifetime Taps</p>
-            <h3 id="p-lifetime" style="color:var(--gold); margin:5px 0; font-size:28px;">0</h3>
+        <h2 style="color: var(--gold);">Executive Profile</h2>
+        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; width: 90%; text-align: center; border: 1px solid #333;">
+            <p id="p-username" style="font-size: 24px; color: var(--green); font-weight: bold;">GUEST</p>
+            <p style="color:#666;">Total Earnings: <span id="p-lifetime" style="color:var(--gold);">0</span></p>
         </div>
-        <button class="btn-gold" style="background:var(--dia); margin-top:20px;" onclick="redeem()">Redeem Airtime</button>
+        <button class="btn-gold" style="background: var(--dia);" onclick="redeem()">Redeem Airtime</button>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="showTab('home', this)">🏠<br>Home</div>
-        <div class="nav-item" onclick="showTab('pay', this)">⚡<br>Upgrade</div>
-        <div class="nav-item" onclick="showTab('profile', this)">👤<br>Profile</div>
+        <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Tap</div>
+        <div class="nav-item" onclick="showTab('pay', this)">⚡<br>Boost</div>
+        <div class="nav-item" onclick="showTab('profile', this)">👤<br>Admin</div>
     </div>
 
     <script>
@@ -89,13 +113,12 @@
 
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "00";
         const suffix = parseInt(String(userId).slice(-2));
-        // STRICT FORMULA: Prince2026 + (Suffix * 3 + 7)
         const REQUIRED_CODE = "Prince2026" + (suffix * 3 + 7);
 
         let bal = parseInt(localStorage.getItem('bal_'+userId)) || 0;
         let lifetime = parseInt(localStorage.getItem('life_'+userId)) || 0;
         let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
-        let eng = 1000;
+        let eng = parseInt(localStorage.getItem('eng_'+userId)) || 1000;
         let isPremium = localStorage.getItem('premium_'+userId) === 'true';
         let userNick = localStorage.getItem('nick_'+userId) || "GUEST";
 
@@ -103,43 +126,42 @@
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
             document.getElementById('energy').innerText = eng;
-            document.getElementById('refill-btn').style.display = eng < 150 ? "block" : "none";
+            document.getElementById('refill-btn').style.display = eng < 100 ? "block" : "none";
             document.getElementById('p-lifetime').innerText = lifetime.toLocaleString();
             document.getElementById('p-username').innerText = userNick.toUpperCase();
+            
+            // Add/Remove glow based on energy
+            if(eng > 800) document.getElementById('coin').classList.add('glow');
+            else document.getElementById('coin').classList.remove('glow');
 
             if (isPremium) {
-                document.getElementById('user-display').innerText = "👑 " + userNick.toUpperCase();
+                document.getElementById('user-display').innerText = "⭐ " + userNick.toUpperCase();
                 document.getElementById('sub-active-view').style.display = "none";
                 document.getElementById('sub-locked-view').style.display = "block";
             }
             localStorage.setItem('bal_'+userId, bal);
             localStorage.setItem('life_'+userId, lifetime);
+            localStorage.setItem('dia_'+userId, diamonds);
+            localStorage.setItem('eng_'+userId, eng);
         }
 
         function runAd(type) {
-            if (!window.Adsgram) { alert("Loading Ads..."); return; }
-            const AdController = window.Adsgram.init({ blockId: "22672" });
-            AdController.show().then(() => {
-                if (type === 'refill') { eng = 1000; } else { bal += 1000; lifetime += 1000; }
+            if (!window.Adsgram) return;
+            window.Adsgram.init({ blockId: "22672" }).show().then(() => {
+                if (type === 'refill') eng = 1000; else { bal += 1000; lifetime += 1000; }
                 updateUI();
-            }).catch((err) => { alert("AD ERROR: " + (err.description || "Try again later.")); });
+            });
         }
 
         function strictSubscribe() {
-            const codeInput = document.getElementById('secret-code').value.trim();
-            const nameInput = document.getElementById('username-input').value.trim();
-            
-            // STRICT VERIFICATION: MUST MATCH FORMULA
-            if (codeInput === REQUIRED_CODE) {
-                if (nameInput.length < 2) { tg.showAlert("Invalid Username!"); return; }
-                userNick = nameInput; isPremium = true;
+            if (document.getElementById('secret-code').value.trim() === REQUIRED_CODE) {
+                userNick = document.getElementById('username-input').value.trim() || "ELITE";
+                isPremium = true;
                 localStorage.setItem('premium_'+userId, 'true');
                 localStorage.setItem('nick_'+userId, userNick);
-                tg.showAlert("Premium Activated!");
                 updateUI();
-            } else { 
-                tg.showAlert("Invalid Verification Code! This code does not match your specific ID."); 
-            }
+                tg.showAlert("PREMIUM UNLOCKED");
+            } else { tg.showAlert("WRONG CODE"); }
         }
 
         const coin = document.getElementById('coin');
@@ -153,11 +175,11 @@
                 float.style.left = (e.clientX - 20) + 'px';
                 float.style.top = (e.clientY - 40) + 'px';
                 document.body.appendChild(float);
-                setTimeout(() => float.remove(), 700);
+                setTimeout(() => float.remove(), 800);
                 const rect = coin.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                coin.style.transform = `perspective(1000px) rotateX(${-y/5}deg) rotateY(${x/5}deg) scale(0.95)`;
+                const x = (e.clientX - rect.left - rect.width/2)/8;
+                const y = (e.clientY - rect.top - rect.height/2)/8;
+                coin.style.transform = `perspective(1000px) rotateX(${-y}deg) rotateY(${x}deg) scale(0.92)`;
                 updateUI();
             }
         });
@@ -169,14 +191,11 @@
             document.getElementById(id).classList.add('active'); el.classList.add('active');
         }
 
-        function inviteFriend() {
-            const shareLink = `https://t.me/PrinceTap_bot/play?startapp=${userId}`;
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Join Prince Tap! 🚀`);
-        }
-        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium Suffix: ${userId.toString().slice(-2)}`); }
+        function inviteFriend() { window.open(`https://t.me/share/url?url=https://t.me/PrinceTap_bot/play?startapp=${userId}&text=Join the Elite!`); }
+        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium Suffix: ${suffix}`); }
         function redeem() {
-            if (bal >= 20000) { bal -= 20000; diamonds++; updateUI(); window.open(`https://wa.me/2348124647818?text=Redeem Diamond: ${userId.toString().slice(-2)}`); }
-            else { tg.showAlert("Need 20,000 coins for 1 Diamond!"); }
+            if (bal >= 20000) { bal -= 20000; diamonds++; updateUI(); window.open(`https://wa.me/2348124647818?text=Redeem Diamond: ${suffix}`); }
+            else { tg.showAlert("Need 20,000 Coins"); }
         }
 
         setInterval(() => { if (isPremium) { bal += 10; lifetime += 10; updateUI(); } }, 1000);
