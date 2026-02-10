@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prince Tap: Elite</title>
+    <title>Crypto Tap: Elite</title>
     <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --red: #ff4444; --orange: #ff8800; }
-        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --red: #ff4444; }
+        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: #0b0e11; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; position: relative; }
 
         /* LIVE BACKGROUND */
         .bg-animate { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: radial-gradient(circle at 50% 50%, #1c1f24 0%, #0b0e11 100%); }
@@ -21,13 +21,11 @@
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; }
         .container.active { display: flex; }
         
-        /* AD BUTTON PHYSICS */
-        .btn-gold { background: linear-gradient(to bottom, #f3ba2f, #bf9524); color: #403108; padding: 15px; border-radius: 14px; font-weight: 800; border: none; width: 95%; text-transform: uppercase; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 0 #8e6d1a; transition: transform 0.05s, box-shadow 0.05s; outline: none; }
+        .btn-gold { background: linear-gradient(to bottom, #f3ba2f, #bf9524); color: #403108; padding: 15px; border-radius: 14px; font-weight: 800; border: none; width: 95%; text-transform: uppercase; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 0 #8e6d1a; transition: transform 0.05s, box-shadow 0.05s; }
         .btn-gold:active { transform: translateY(4px); box-shadow: 0 1px 0 #8e6d1a; }
         
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); width: 90%; padding: 15px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 12px; }
         
-        /* 3D COIN & TURBO EFFECTS */
         .coin-wrap { position: relative; margin: 20px 0; display: flex; justify-content: center; align-items: center; width: 100%; perspective: 1000px; }
         .coin-btn { width: 280px; height: 280px; background: radial-gradient(circle at 30% 30%, #ffe08a 0%, #f3ba2f 40%, #bf9524 100%); border-radius: 50%; border: 4px solid #5c4711; outline: 8px solid var(--gold); outline-offset: -12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 130px; color: #5c4711; font-weight: 900; transition: transform 0.1s; }
         
@@ -39,7 +37,7 @@
         .tap-anim { position: absolute; color: white; font-size: 38px; font-weight: 900; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 1000; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
 
-        .nav { height: 75px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .nav { height: 75px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 3000;}
         .nav-item { color: #888; font-size: 11px; text-align: center; flex: 1; cursor: pointer; }
         .nav-item.active { color: var(--gold); }
     </style>
@@ -75,7 +73,7 @@
         <div class="glass-card">
             <h4 style="color: var(--dia); margin:0;">Perfect Referral</h4>
             <button class="btn-gold" onclick="shareRef()">Invite Friend</button>
-            <button id="claim-ref-btn" class="btn-gold" style="background:var(--green); display:none;" onclick="claimReferral()">Claim Welcome Bonus</button>
+            <button id="claim-ref-btn" class="btn-gold" style="background:var(--green); display:none;" onclick="claimReferral()">🎁 Claim Welcome Bonus</button>
         </div>
         <div class="glass-card" style="display:flex; justify-content: space-between; align-items: center;">
             <div><h4 style="margin:0; color:var(--gold);">Recharge Speed</h4><p style="margin:0; font-size:10px;">Lvl <span id="lvl-speed">1</span></p></div>
@@ -96,9 +94,9 @@
                 <button class="btn-gold" onclick="sendWA()">Message Admin</button>
             </div>
             <div style="text-align:center; width:100%; margin-top:20px;">
-                <input type="text" id="secret-code" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Verification Code">
-                <input type="text" id="username-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Set Username">
-                <button class="btn-gold" style="background: var(--green);" onclick="strictSubscribe()">Activate Premium</button>
+                <input type="text" id="secret-code" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Code">
+                <input type="text" id="username-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Username">
+                <button class="btn-gold" style="background: var(--green);" onclick="strictSubscribe()">Activate</button>
             </div>
         </div>
         <div id="sub-locked-view" style="display:none; color:var(--green); text-align:center;"><h3>✅ ELITE MEMBER ACTIVATED</h3></div>
@@ -108,19 +106,17 @@
         <h2 style="color: var(--gold);">Settings</h2>
         <div class="glass-card" style="text-align:center;">
             <p id="p-username" style="font-size: 22px; color: var(--green); font-weight: bold;">GUEST</p>
-            <p style="color:#888;">UID: <span style="color:white;">...</span><span id="p-suffix"></span></p>
+            <p style="color:#888;">UID Suffix: <span id="p-suffix"></span></p>
         </div>
-
         <div class="glass-card" style="text-align:center;">
-            <h4 style="color: var(--dia); margin:0;">Redeem Diamond (20k Coins)</h4>
-            <button class="btn-gold" style="background: var(--dia); color:#000; width:100%;" onclick="requestRedeem()">Request Airtime (₦100)</button>
+            <h4 style="color: var(--dia); margin:0;">Redeem Airtime (₦100)</h4>
+            <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="requestRedeem()">Request Airtime</button>
             <div style="margin-top:15px; display:flex; gap:5px;">
                 <input type="text" id="admin-clear-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border:1px solid #333; flex:2; margin:0;" placeholder="Clearance Code">
                 <button class="btn-gold" style="background:var(--green); flex:1; margin:0;" onclick="clearDiamond()">Clear</button>
             </div>
         </div>
-
-        <button class="btn-gold" style="background:var(--red); color:#fff; margin-top:50px;" onclick="factoryReset()">⚠️ Factory Reset App</button>
+        <button class="btn-gold" style="background:var(--red); color:#fff; margin-top:30px;" onclick="factoryReset()">⚠️ Reset App</button>
     </div>
 
     <div class="nav">
@@ -145,12 +141,16 @@
         let userNick = localStorage.getItem('nick_'+userId) || "GUEST";
         let lvlSpeed = parseInt(localStorage.getItem('lvlSpeed_'+userId)) || 1;
         let lvlTank = parseInt(localStorage.getItem('lvlTank_'+userId)) || 1;
-        let eng = 1000, tapCounter = parseInt(localStorage.getItem('tapCount_'+userId)) || 0;
+        let eng = parseInt(localStorage.getItem('eng_'+userId)) || 1000;
+        let tapCounter = parseInt(localStorage.getItem('tapCount_'+userId)) || 0;
         let dTurbo = parseInt(localStorage.getItem('dTurbo_'+userId)) ?? 4;
         let dRefill = parseInt(localStorage.getItem('dRefill_'+userId)) ?? 3;
         let isTurbo = false;
 
         function updateUI() {
+            checkDailyReset();
+            if (bal >= 20000) { bal = 1; diamonds += 1; tg.showAlert("💎 DIAMOND EARNED! Balance reset."); }
+
             const maxEng = 500 + (lvlTank * 500);
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
@@ -174,6 +174,7 @@
             localStorage.setItem('bal_'+userId, bal);
             localStorage.setItem('life_'+userId, lifetime);
             localStorage.setItem('dia_'+userId, diamonds);
+            localStorage.setItem('eng_'+userId, eng);
             localStorage.setItem('lvlSpeed_'+userId, lvlSpeed);
             localStorage.setItem('lvlTank_'+userId, lvlTank);
             localStorage.setItem('tapCount_'+userId, tapCounter);
@@ -181,9 +182,17 @@
             localStorage.setItem('dRefill_'+userId, dRefill);
         }
 
-        // DAILY RESET logic
-        let lastDate = localStorage.getItem('lastDate_'+userId);
-        if (lastDate !== new Date().toDateString()) { dTurbo = 4; dRefill = 3; localStorage.setItem('lastDate_'+userId, new Date().toDateString()); }
+        // --- 3 AM RESET LOGIC ---
+        function checkDailyReset() {
+            const now = new Date();
+            const todayTag = now.toISOString().split('T')[0];
+            const lastResetDate = localStorage.getItem('lastResetDate_' + userId);
+            if (now.getHours() >= 3 && lastResetDate !== todayTag) {
+                dTurbo = 4; dRefill = 3;
+                localStorage.setItem('lastResetDate_' + userId, todayTag);
+                updateUI();
+            }
+        }
 
         function useDaily(type) {
             if (type === 'turbo' && dTurbo > 0 && !isTurbo) {
@@ -202,40 +211,65 @@
             updateUI();
         }
 
-        // REFERRAL detection
-        const referrerId = tg.initDataUnsafe.start_param;
+        // --- REFERRAL & REDEMPTION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const referrerId = tg.initDataUnsafe.start_param || urlParams.get('startapp');
         if (referrerId && !localStorage.getItem('refClaimed_'+userId)) document.getElementById('claim-ref-btn').style.display = 'block';
+
         function claimReferral() {
             bal += 2000; localStorage.setItem('refClaimed_'+userId, 'true');
-            document.getElementById('claim-ref-btn').style.display = 'none'; tg.showAlert("Welcome Bonus +2k!");
-            updateUI();
+            document.getElementById('claim-ref-btn').style.display = 'none'; tg.showAlert("🎁 Welcome Bonus +2k!"); updateUI();
         }
-        function shareRef() {
-            const link = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join Prince Tap!`);
-        }
-        function copyRef() {
-            const link = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
-            const el = document.createElement('textarea'); el.value = link; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-            tg.showAlert("Link Copied!");
-        }
+        function shareRef() { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/'+BOT_USERNAME+'/play?startapp='+userId)}&text=Join Prince Tap!`); }
+        function copyRef() { const el = document.createElement('textarea'); el.value = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); tg.showAlert("Link Copied!"); }
 
-        // ADMIN CLEARANCE & TXID
         function requestRedeem() {
-            if (bal >= 20000) {
-                const checkDigit = suffix + 10;
-                const txId = "PT-" + Math.floor(Math.random() * 900 + 100) + checkDigit;
-                window.open(`https://wa.me/2348124647818?text=REDEEM REQUEST%0AUser: ${userNick}%0AUID Suffix: ${suffix}%0ATXID: ${txId}`);
-                tg.showAlert("Request Sent! TXID: " + txId);
-            } else { tg.showAlert("Need 20,000 coins!"); }
+            if (diamonds >= 1) {
+                const txId = "PT-" + Math.floor(Math.random() * 900 + 100) + (suffix + 10);
+                window.open(`https://wa.me/2348124647818?text=REDEEM REQUEST%0AUser: ${userNick}%0ATXID: ${txId}`);
+                tg.showAlert("Request Sent! Diamonds stay until Admin clears them.");
+            } else { tg.showAlert("Need 1 Diamond!"); }
         }
         function clearDiamond() {
             if (document.getElementById('admin-clear-input').value.trim() === "Clear" + (suffix * 2)) {
-                if (bal >= 20000) { bal -= 20000; updateUI(); tg.showAlert("Diamond Cleared!"); document.getElementById('admin-clear-input').value = ""; }
-            } else { tg.showAlert("Invalid Clearance Code!"); }
+                if (diamonds >= 1) { diamonds -= 1; updateUI(); tg.showAlert("✅ Diamond Cleared!");
+                setTimeout(() => window.open(`https://wa.me/2348124647818?text=I have successfully cleared my Diamond!`), 2000); }
+            } else { tg.showAlert("Invalid Code!"); }
         }
 
-        // UNLIMITED FEED
+        // --- TAPPING ---
+        const coin = document.getElementById('coin');
+        coin.addEventListener('pointerdown', (e) => {
+            if (eng > 0 || isTurbo) {
+                const val = (isPremium ? 10 : 1) * (isTurbo ? 5 : 1); 
+                bal += val; if(!isTurbo) eng--; tapCounter++; 
+                const float = document.createElement('div');
+                float.className = 'tap-anim'; float.innerText = '+' + val;
+                float.style.left = (e.clientX - 20) + 'px'; float.style.top = (e.clientY - 40) + 'px';
+                document.body.appendChild(float); setTimeout(() => float.remove(), 800);
+                const rect = coin.getBoundingClientRect();
+                coin.style.transform = `perspective(1000px) rotateX(${-(e.clientY - rect.top - 140)/8}deg) rotateY(${(e.clientX - rect.left - 140)/8}deg) scale(0.92)`;
+                updateUI();
+                if (tapCounter >= 4000) {
+                    tapCounter = 0; tg.showAlert("Milestone! Ad Bonus: +1,000.");
+                    window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch(() => updateUI());
+                }
+            }
+        });
+        coin.addEventListener('pointerup', () => coin.style.transform = "perspective(1000px) scale(1)");
+
+        function runAd() { window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch((err) => tg.showAlert("Ad unavailable: " + err.description)); }
+        function buyBoost(t) { let c = (t === 'speed' ? lvlSpeed + 1 : lvlTank + 1) * 250; if (bal >= c) { if(t==='speed') lvlSpeed++; else lvlTank++; updateUI(); } else tg.showAlert("Need more coins!"); }
+        function strictSubscribe() { if (document.getElementById('secret-code').value.trim() === REQUIRED_CODE) { userNick = document.getElementById('username-input').value.trim() || "ELITE"; isPremium = true; updateUI(); } else tg.showAlert("Wrong Code!"); }
+        function factoryReset() { tg.showConfirm("Reset everything?", (ok) => { if(ok) { localStorage.clear(); window.location.reload(); } }); }
+        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
+        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium: ${userId}`); }
+        
+        setInterval(() => { if (eng < (500 + lvlTank * 500)) { eng += lvlSpeed; updateUI(); } }, 1000);
+        setInterval(() => { if (isPremium) { bal += 10; updateUI(); } }, 1000);
+        updateUI();
+
+        // FEED
         const namesPool = ["Abigail", "Benson", "Chidi", "Dada", "Efe", "Femi", "Gani", "Hassan", "Ife", "Joy", "Kola", "Ladi", "Musa", "Ngozi", "Obi", "Patience", "Quasim", "Rabi", "Sola", "Tunde", "Uche", "Victor", "Wale", "Yemi", "Zainab", "Ali", "Bassey", "Cynthia", "Danjuma", "Evelyn", "Fidelis", "Grace", "Hope", "Idris", "John", "Kemi", "Lucky", "Moyo", "Nkechi", "Olu", "Paul", "Queen", "Rose", "Segun", "Taiwo", "Umar", "Vera", "Wisdom", "Yusuf", "Zion"];
         function showFeed() {
             const feed = document.getElementById('reward-feed');
@@ -245,55 +279,9 @@
             feed.innerText = `🎉 Member ${name.toUpperCase()} ${actions[Math.floor(Math.random()*actions.length)]}`;
             feed.classList.add('show');
             setTimeout(() => feed.classList.remove('show'), 4000);
-            setTimeout(showFeed, 10000 + Math.random() * 5000);
+            setTimeout(showFeed, 12000);
         }
         showFeed();
-
-        // TAPPING
-        const coin = document.getElementById('coin');
-        coin.addEventListener('pointerdown', (e) => {
-            if (eng > 0 || isTurbo) {
-                const val = (isPremium ? 10 : 1) * (isTurbo ? 5 : 1); 
-                bal += val; if(!isTurbo) eng--; tapCounter++; 
-                
-                const float = document.createElement('div');
-                float.className = 'tap-anim';
-                float.innerText = '+' + val;
-                float.style.left = (e.clientX - 20) + 'px'; float.style.top = (e.clientY - 40) + 'px';
-                document.body.appendChild(float);
-                setTimeout(() => float.remove(), 800);
-
-                const rect = coin.getBoundingClientRect();
-                coin.style.transform = `perspective(1000px) rotateX(${-(e.clientY - rect.top - 140)/8}deg) rotateY(${(e.clientX - rect.left - 140)/8}deg) scale(0.92)`;
-                updateUI();
-
-                if (tapCounter >= 4000) {
-                    tapCounter = 0; tg.showAlert("Milestone! Ad Bonus: +1,000.");
-                    window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch(() => updateUI());
-                }
-            }
-        });
-        coin.addEventListener('pointerup', () => coin.style.transform = "perspective(1000px) scale(1)");
-
-        function runAd() {
-            window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch((err) => tg.showAlert("Ad unavailable. Check network."));
-        }
-        function strictSubscribe() {
-            if (document.getElementById('secret-code').value.trim() === REQUIRED_CODE) {
-                userNick = document.getElementById('username-input').value.trim() || "ELITE";
-                isPremium = true; updateUI(); tg.showAlert("Elite Activated!");
-            } else tg.showAlert("Wrong Code!");
-        }
-        function factoryReset() { tg.showConfirm("Delete all progress?", (ok) => { if(ok) { localStorage.clear(); window.location.reload(); } }); }
-        function showTab(id, el) {
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active'); el.classList.add('active');
-        }
-        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium: ${userId}`); }
-        setInterval(() => { if (eng < (500 + lvlTank * 500)) { eng += lvlSpeed; updateUI(); } }, 1000);
-        setInterval(() => { if (isPremium) { bal += 10; updateUI(); } }, 1000);
-        updateUI();
     </script>
 </body>
 </html>
