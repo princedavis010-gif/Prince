@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap: Smart Referral</title>
+    <title>Crypto Tap: Test Build</title>
     <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -14,171 +14,86 @@
         .nebula { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #1a1c2c, #05070a); }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.6; animation: drift var(--s) linear infinite; }
         @keyframes drift { from { transform: translateY(100vh); } to { transform: translateY(-10vh); } }
-        #trust-pulse { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 50px; font-size: 11px; color: var(--green); z-index: 5000; text-align: center; opacity: 0; transition: 0.5s; }
-        #trust-pulse.show { opacity: 1; }
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .coin-btn { width: 310px; height: 310px; background: radial-gradient(circle, #ffe08a, #f3ba2f, #8e6d1a); border-radius: 50%; border: 12px solid #3d2f07; box-shadow: 0 20px 50px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 150px; color: #3d2f07; font-weight: 900; transition: transform 0.1s; transform-style: preserve-3d; }
-        .tap-anim { position: absolute; color: var(--gold); font-size: 45px; font-weight: 900; animation: floatUp 0.7s forwards; pointer-events: none; z-index: 1000; }
-        @keyframes floatUp { to { opacity: 0; transform: translateY(-200px) scale(1.6); } }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 18px; border-radius: 18px; font-weight: 800; border: none; width: 100%; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
+        .coin-btn { width: 310px; height: 310px; background: radial-gradient(circle, #ffe08a, #f3ba2f, #8e6d1a); border-radius: 50%; border: 12px solid #3d2f07; box-shadow: 0 20px 50px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 150px; color: #3d2f07; font-weight: 900; transition: transform 0.1s; transform-style: preserve-3d; cursor: pointer; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 18px; border-radius: 20px; font-weight: 800; border: none; width: 100%; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
         .nav { height: 85px; background: rgba(0,0,0,0.95); display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 11px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 20px; padding: 15px; width: 95%; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        #ref-list { text-align: left; font-size: 13px; color: #aaa; margin-top: 10px; }
     </style>
 </head>
-<body onload="initNebula(); startTrustPulse();">
+<body onload="initNebula(); checkReferral();">
     <div class="nebula" id="nebula"></div>
-    <div id="trust-pulse"></div>
 
     <div id="home" class="container active">
-        <div id="user-tag" style="color:var(--green); font-weight:bold; height:20px;"></div>
         <div id="balance" style="font-size: 65px; font-weight: 900; color: var(--gold);">0</div>
         <div style="font-size: 22px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
-        <div style="margin: 10px 0; color: #ccc;">⚡ <span id="energy">1000</span> / <span id="max-energy">1000</span></div>
+        <div style="margin: 10px 0; color: #ccc;">⚡ <span id="energy">1000</span> / 1000</div>
         <div class="coin-btn" id="coin">P</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="runAds()">📺 WATCH AD (+2,000)</button>
-    </div>
-
-    <div id="shop" class="container">
-        <h2 style="color:var(--gold);">SHOP</h2>
-        <div class="glass-card">
-            <h3>SUPERNOVA BOOST</h3>
-            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE 5X</button>
-        </div>
-        <div class="glass-card">
-            <p>Tap Power (Lvl <span id="lvl-tap">1</span>)</p>
-            <button class="btn-gold" onclick="buyUpgrade('tap')">Upgrade Tap</button>
-        </div>
-    </div>
-
-    <div id="premium" class="container">
-        <h2 style="color:var(--gold);">PREMIUM</h2>
-        <div class="glass-card">
-            <p>Premium Subscription: ₦200</p>
-            <p>OPay: 8124647818</p>
-            <button class="btn-gold" onclick="openWA('Proof')">SEND PROOF</button>
-        </div>
-        <button class="btn-gold" style="background:var(--purple); color:white; padding:22px;" onclick="shareRef()">🚀 INVITE FRIENDS (+2,000)</button>
-        <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Activation Code">
-        <button class="btn-gold" style="background:var(--green);" onclick="activateElite()">ACTIVATE</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="runAds()">📺 TEST AD (+2,000)</button>
     </div>
 
     <div id="settings" class="container">
-        <h2 style="color:var(--gold);">ACCOUNT & REFERRALS</h2>
-        <div class="glass-card">
-            <p id="p-nick" style="font-size:24px; color:var(--green); font-weight:bold;">GUEST</p>
-            <p>ID Suffix: <span id="p-suffix"></span></p>
-        </div>
-        <div class="glass-card">
-            <h4 style="margin:0; color:var(--gold);">Referral History</h4>
-            <div id="ref-list">No referrals yet.</div>
-        </div>
-        <button class="btn-gold" style="background:var(--dia); color:#000;" onclick="requestRedeem()">REDEEM DIAMOND</button>
+        <h2 style="color:var(--gold);">STATS</h2>
+        <div id="p-suffix" style="font-size: 20px; color: var(--green);"></div>
+        <button class="btn-gold" onclick="requestRedeem()">REDEEM DIAMOND</button>
     </div>
 
     <div class="nav">
         <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Tap</div>
-        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Shop</div>
-        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
         <div class="nav-item" onclick="showTab('settings', this)">⚙️<br>Stats</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready(); tg.expand();
+        tg.ready();
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "guest";
         const suffix = parseInt(String(userId).slice(-2));
-        
-        // Referral Track
-        const refOwner = new URLSearchParams(window.location.search).get('startapp');
-        let referrals = JSON.parse(localStorage.getItem('refs_'+userId)) || [];
-
         let bal = parseInt(localStorage.getItem('bal_'+userId)) || 0;
         let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
-        let isElite = localStorage.getItem('elite_'+userId) === 'true';
-        let nick = localStorage.getItem('nick_'+userId) || "GUEST";
-        let tapLvl = parseInt(localStorage.getItem('tapLvl_'+userId)) || 1;
-        let engLvl = parseInt(localStorage.getItem('engLvl_'+userId)) || 1;
-        let eng = 1000 + (engLvl * 200), isBoosted = false;
+        let eng = 1000;
 
         function updateUI() {
-            if (bal >= 20000) { bal = 0; diamonds++; updateUI(); }
-            
-            // --- SMART REFERRAL LOGIC ---
-            if (refOwner && localStorage.getItem('ref_bonus_'+userId) !== 'claimed' && bal >= 500) {
-                localStorage.setItem('ref_bonus_'+userId, 'claimed');
-                tg.showAlert("Referral Goal Reached! Your inviter (ID: " + refOwner + ") has received 2,000 coins.");
-                // In a real server, we would credit refOwner here. 
-                // We simulate it by adding it to their local history if they are viewing this device.
-            }
-
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
             document.getElementById('energy').innerText = eng;
-            document.getElementById('p-suffix').innerText = suffix;
-            document.getElementById('user-tag').innerText = isElite ? "👑 " + nick : "";
-            
-            // Build Ref List
-            const list = document.getElementById('ref-list');
-            if(referrals.length > 0) {
-                list.innerHTML = referrals.map(r => `• ID: ${r.id} - ${r.status}`).join('<br>');
-            }
-
+            document.getElementById('p-suffix').innerText = "Suffix: " + suffix;
             localStorage.setItem('bal_'+userId, bal);
             localStorage.setItem('dia_'+userId, diamonds);
-            localStorage.setItem('elite_'+userId, isElite);
-            localStorage.setItem('tapLvl_'+userId, tapLvl);
+        }
+
+        // --- UPDATED AD LOGIC FOR TEST BLOCK ---
+        function runAds() {
+            const AdController = window.Adsgram.init({ blockId: "22719" });
+            AdController.show().then(() => {
+                bal += 2000;
+                updateUI();
+                tg.showAlert("Test Ad Success! +2,000 Coins");
+            }).catch((result) => {
+                console.error(result);
+                tg.showAlert("Ad error or fill issue. Status: " + (result.description || "Unknown"));
+            });
         }
 
         const coin = document.getElementById('coin');
-        function handleTap(e) {
+        coin.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touches = e.changedTouches ? e.changedTouches : [e];
-            for (let i = 0; i < touches.length; i++) {
-                if (eng > 0) {
-                    let val = (isElite ? 15 : 1) + tapLvl;
-                    if (isBoosted) val *= 5;
-                    bal += val; eng--; 
-                    createTapAnim(touches[i].clientX, touches[i].clientY, val);
-                }
+            if (eng > 0) {
+                bal++; eng--; updateUI();
+                coin.style.transform = "scale(0.95)";
+                setTimeout(() => coin.style.transform = "scale(1)", 100);
+            }
+        });
+
+        function checkReferral() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('startapp') && !localStorage.getItem('isOld_'+userId)) {
+                tg.showAlert("Welcome! Referred by " + params.get('startapp'));
+                localStorage.setItem('isOld_'+userId, 'true');
             }
             updateUI();
-        }
-
-        function createTapAnim(x, y, val) {
-            const el = document.createElement('div');
-            el.className = 'tap-anim'; el.innerText = "+" + val;
-            el.style.left = x + 'px'; el.style.top = y + 'px';
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 700);
-        }
-
-        coin.addEventListener('touchstart', handleTap);
-        coin.addEventListener('mousedown', handleTap);
-
-        function activateElite() {
-            if (document.getElementById('code-input').value.includes("PRINCE")) {
-                isElite = true; updateUI(); tg.showAlert("👑 ELITE ACTIVE!");
-            }
-        }
-
-        function shareRef() {
-            const link = `https://t.me/crypt7tapbot/play?startapp=${userId}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join me on Crypto Tap! 🪙`);
-        }
-
-        function openWA(m) { window.open(`https://wa.me/2348124647818?text=${m} | Suffix: ${suffix}`); }
-
-        function requestRedeem() {
-            if (diamonds >= 1) { diamonds--; updateUI(); openWA("I want to redeem 1 Diamond"); }
-        }
-
-        function runAds() {
-            window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 2000; updateUI(); });
         }
 
         function showTab(id, el) { 
@@ -189,27 +104,22 @@
 
         function initNebula() {
             const n = document.getElementById('nebula');
-            for(let i=0; i<60; i++) {
+            for(let i=0; i<50; i++) {
                 const s = document.createElement('div');
                 s.className = 'star';
                 s.style.width = s.style.height = Math.random()*3+'px';
                 s.style.left = Math.random()*100+'%';
                 s.style.top = Math.random()*100+'%';
-                s.style.setProperty('--s', Math.random()*4+4+'s');
+                s.style.setProperty('--s', Math.random()*5+5+'s');
                 n.appendChild(s);
             }
         }
 
-        function startTrustPulse() {
-            const names = ["Prince", "Segun", "Ada", "Victor", "Joy"];
-            setInterval(() => {
-                if (Math.random() > 0.4) {
-                    const msg = `🚀 ${names[Math.floor(Math.random()*names.length)]}${Math.floor(Math.random()*99)} reached 10,000 taps!`;
-                    const tp = document.getElementById('trust-pulse');
-                    tp.innerText = msg; tp.classList.add('show');
-                    setTimeout(() => tp.classList.remove('show'), 3000);
-                }
-            }, 8000);
+        function requestRedeem() {
+            if(diamonds >= 1) {
+                diamonds--; updateUI();
+                window.open(`https://wa.me/2348124647818?text=Redeem Suffix:${suffix}`);
+            }
         }
 
         setInterval(() => { if (eng < 1000) { eng++; updateUI(); } }, 1000);
