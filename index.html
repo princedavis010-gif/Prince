@@ -3,117 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap: Supernova</title>
+    <title>Crypto Tap: Elite</title>
     <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --red: #ff4444; --purple: #a020f0; }
+        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --elite: #ff3e00; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
-        
-        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: #05070a; user-select: none; transition: background 0.3s; }
+        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; color: white; background: #05070a; user-select: none; }
 
-        /* LIVE NEBULA & SUPERNOVA */
-        .nebula { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #1a1c2c 0%, #05070a 100%); }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--d) infinite; transition: all 0.3s; }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        
-        /* SUPERNOVA MODE */
-        body.boosted { background: #0a0015; }
-        body.boosted .star { background: var(--purple); box-shadow: 0 0 15px var(--purple); animation: warp 0.15s linear infinite !important; }
-        @keyframes warp { from { transform: translateY(0) scale(1); } to { transform: translateY(-20px) scale(1.8); } }
+        /* VIBRANT LIVE BACKGROUND */
+        .nebula { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; 
+            background: radial-gradient(circle at 20% 20%, rgba(160, 32, 240, 0.2), transparent 40%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 210, 255, 0.2), transparent 40%),
+                        linear-gradient(45deg, #05070a, #0d1117); }
+        .star { position: absolute; background: white; border-radius: 50%; animation: move var(--s) linear infinite; }
+        @keyframes move { from { transform: translateY(0); } to { transform: translateY(100vh); } }
 
-        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
-        .container.active { display: flex; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        /* ELITE CERTIFICATION SCREEN */
+        #elite-cert { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .cert-card { background: linear-gradient(145deg, #1a1a1a, #000); border: 2px solid var(--gold); border-radius: 30px; padding: 40px 20px; width: 90%; box-shadow: 0 0 50px var(--gold); animation: certGlow 2s infinite alternate; }
+        @keyframes certGlow { from { box-shadow: 0 0 20px var(--gold); } to { box-shadow: 0 0 60px var(--gold); } }
 
-        /* PULSING COIN */
-        .coin-aura { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; margin: 25px 0; }
-        .aura-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(243, 186, 47, 0.3) 0%, transparent 70%); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.4); opacity: 0; } }
-        
-        .coin-btn { width: 250px; height: 250px; background: radial-gradient(circle at 35% 35%, #ffe08a, #f3ba2f 50%, #8e6d1a); border-radius: 50%; border: 10px solid #3d2f07; box-shadow: 0 0 60px rgba(243, 186, 47, 0.5); display: flex; align-items: center; justify-content: center; font-size: 130px; color: #3d2f07; font-weight: 900; transition: transform 0.05s; z-index: 5; cursor: pointer; }
+        /* 3D TILT COIN - BIGGER */
+        .coin-aura { position: relative; width: 330px; height: 330px; display: flex; align-items: center; justify-content: center; margin: 25px 0; perspective: 1000px; }
+        .coin-btn { width: 300px; height: 300px; background: radial-gradient(circle, #ffe08a, #f3ba2f, #8e6d1a); border-radius: 50%; border: 12px solid #3d2f07; box-shadow: 0 20px 50px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 160px; color: #3d2f07; font-weight: 900; transition: transform 0.1s; cursor: pointer; }
 
-        .tap-anim { position: absolute; color: var(--gold); font-size: 40px; font-weight: 900; animation: floatUp 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; pointer-events: none; text-shadow: 0 0 12px rgba(0,0,0,0.8); z-index: 100; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-180px) scale(1.8); } }
-
-        /* CARDS & BUTTONS */
-        .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border-radius: 24px; padding: 20px; width: 95%; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 18px; border-radius: 18px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-invite { background: linear-gradient(135deg, #a020f0, #6a11cb); color: white; padding: 22px; border-radius: 18px; font-weight: 900; font-size: 19px; border: none; width: 100%; margin: 20px 0; cursor: pointer; animation: glow-p 2s infinite; }
-        @keyframes glow-p { 0%, 100% { box-shadow: 0 0 10px var(--purple); } 50% { box-shadow: 0 0 25px var(--purple); } }
-
-        .nav { height: 85px; background: rgba(0,0,0,0.95); display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
-        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #555; font-size: 12px; font-weight: bold; }
+        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; }
+        .container.active { display: flex; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 20px; border-radius: 20px; font-weight: 800; border: none; width: 100%; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
+        .nav { height: 85px; background: rgba(0,0,0,0.9); display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
+        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #555; font-size: 11px; }
         .nav-item.active { color: var(--gold); }
-        #lock-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.97); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:30px; }
     </style>
 </head>
-<body onload="initStars()">
+<body onload="initNebula()">
     <div class="nebula" id="nebula"></div>
 
-    <div id="lock-screen">
-        <h1 style="color:var(--gold);">ACCOUNT LOCKED</h1>
-        <p>Your withdrawal is being processed.</p>
-        <input type="text" id="clear-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Admin Clear Code">
-        <button class="btn-gold" style="background:var(--green);" onclick="clearDiamond()">Unlock App</button>
+    <div id="elite-cert">
+        <div class="cert-card">
+            <h1 style="color:var(--gold); font-size: 32px;">CERTIFIED ELITE</h1>
+            <p style="font-size: 18px;">Welcome, <span id="elite-name" style="color:var(--green);"></span></p>
+            <div style="margin: 20px 0; font-size: 50px;">🏆</div>
+            <p>You are now a verified member of the <br><b>Crypto Tap Elite Club</b></p>
+            <p style="color: #888; font-size: 12px; margin-top: 20px;">Access granted for 72 Hours</p>
+            <button class="btn-gold" onclick="closeCert()">ENTER HUB</button>
+        </div>
     </div>
 
     <div id="home" class="container active">
-        <div id="user-tag" style="color:var(--green); font-weight:bold; font-size:15px; text-shadow: 0 0 10px rgba(0,255,136,0.3);"></div>
-        <div id="balance" style="font-size: 65px; font-weight: 900; color: var(--gold); margin-bottom: -5px;">0</div>
-        <div style="font-size: 22px; color: var(--dia); font-weight: bold; margin-bottom: 5px;">💎 <span id="diamonds">0</span></div>
-        <div style="font-size: 11px; color: #777;">(Cost: 20,000 Coins / Diamond)</div>
-        <div style="margin: 15px 0; color: #ccc; font-weight:bold;">⚡ <span id="energy">1000</span> / <span id="max-energy">1000</span></div>
+        <div id="balance" style="font-size: 70px; font-weight: 900; color: var(--gold);">0</div>
+        <div style="font-size: 22px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        <div style="margin: 15px 0; color: #ccc;">⚡ <span id="energy">1000</span> / 1000</div>
         
-        <div class="coin-aura">
-            <div class="aura-ring"></div>
+        <div class="coin-aura" id="tilt-box">
             <div class="coin-btn" id="coin">P</div>
         </div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="runAds()">📺 Watch Ad (+2,000 Coins)</button>
-    </div>
-
-    <div id="shop" class="container">
-        <h2 style="color:var(--gold);">SHOP & POWER-UPS</h2>
-        <div class="glass-card">
-            <h3>SUPERNOVA BOOST</h3>
-            <p><span style="color:var(--purple); font-weight:bold;">5x TAP VALUE</span> for 30 Seconds!</p>
-            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE NOW</button>
-        </div>
-        <div class="glass-card">
-            <p>Tap Power (Lvl <span id="lvl-tap">1</span>): Cost 500</p>
-            <button class="btn-gold" onclick="buyUpgrade('tap')">Upgrade Tap</button>
-            <p style="margin-top:20px;">Energy Tank (Lvl <span id="lvl-eng">1</span>): Cost 500</p>
-            <button class="btn-gold" onclick="buyUpgrade('eng')">Upgrade Tank</button>
-        </div>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="runAds()">📺 WATCH AD (+2,000)</button>
     </div>
 
     <div id="premium" class="container">
-        <h2 style="color:var(--gold);">PREMIUM ACCESS</h2>
-        <div class="glass-card">
-            <p style="color:var(--green); font-weight:bold; font-size:20px;">Premium subscription for 200 Naira</p>
+        <h2 style="color:var(--gold);">PREMIUM</h2>
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:25px; width:95%; text-align:center;">
+            <p>Premium Subscription: <b>₦200</b></p>
             <p>OPay: <b>8124647818</b></p>
-            <button class="btn-gold" onclick="sendProof()">Send Proof of Payment</button>
+            <input type="text" id="nick-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Choose Nickname">
+            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Enter Code">
+            <button class="btn-gold" style="background:var(--green);" onclick="activateElite()">ACTIVATE ELITE</button>
         </div>
-        <button class="btn-invite" onclick="shareRef()">🚀 INVITE FRIENDS (+2,000)</button>
-        <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Activation Code">
-        <input type="text" id="nick-input" class="btn-gold" style="background:#111; color:#fff;" placeholder="Enter Nickname">
-        <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">Activate Premium</button>
     </div>
 
     <div id="settings" class="container">
-        <h2 style="color:var(--gold);">USER STATS</h2>
-        <div class="glass-card">
-            <p id="p-nick" style="font-size:26px; color:var(--green); font-weight:bold;">GUEST</p>
-            <p>ID Suffix: <span id="p-suffix" style="color:var(--gold);"></span></p>
+        <h2 style="color:var(--gold);">ACCOUNT</h2>
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:25px; width:95%; text-align:center;">
+            <p id="p-nick" style="font-size:24px; color:var(--green); font-weight:bold;">GUEST</p>
+            <p>Suffix: <span id="p-suffix"></span></p>
         </div>
-        <button class="btn-gold" style="background:var(--dia); color:#000;" onclick="requestRedeem()">Redeem Diamond for Airtime</button>
-        <button class="btn-gold" style="background:var(--red); color:#fff; margin-top:50px;" onclick="safeReset()">⚠️ FULL ACCOUNT RESET</button>
+        <button class="btn-gold" onclick="requestRedeem()">REDEEM DIAMOND</button>
     </div>
 
     <div class="nav">
         <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Tap</div>
-        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Shop</div>
-        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Premium</div>
+        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
         <div class="nav-item" onclick="showTab('settings', this)">⚙️<br>Stats</div>
     </div>
 
@@ -121,137 +92,97 @@
         const tg = window.Telegram.WebApp;
         tg.ready(); tg.expand();
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "guest";
-        const refOwner = new URLSearchParams(window.location.search).get('startapp');
         const suffix = parseInt(String(userId).slice(-2));
 
         let bal = parseInt(localStorage.getItem('bal_'+userId)) || 0;
         let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
-        let isPremium = localStorage.getItem('prem_'+userId) === 'true';
+        let isElite = localStorage.getItem('elite_'+userId) === 'true';
         let nick = localStorage.getItem('nick_'+userId) || "GUEST";
-        let subAt = parseInt(localStorage.getItem('subAt_'+userId)) || 1;
-        let tapLvl = parseInt(localStorage.getItem('tapLvl_'+userId)) || 1;
-        let engLvl = parseInt(localStorage.getItem('engLvl_'+userId)) || 1;
-        let eng = 1000 + (engLvl * 200);
-        let isBoosted = false;
-        let refPaid = localStorage.getItem('refPaid_'+userId) === 'true';
+        let eng = 1000;
 
         function updateUI() {
-            const max = 1000 + (engLvl * 200);
-            if (bal >= 20000) { bal = 0; diamonds++; tg.showAlert("💎 1 Diamond Earned!"); }
+            if (bal >= 20000) { bal = 0; diamonds++; celebrate('dia'); }
+            if (bal === 10000 || bal === 15000) { celebrate('milestone'); }
             
-            // Referral Logic: Pay owner 2000 when user hits 100 coins
-            if (refOwner && !refPaid && bal >= 100) {
-                refPaid = true;
-                localStorage.setItem('refPaid_'+userId, 'true');
-                // Note: In a real server this would credit the refOwner. 
-                // In local version, we notify and simulate the payout.
-                console.log("Referral Reward Triggered for: " + refOwner);
-            }
-
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
             document.getElementById('energy').innerText = eng;
-            document.getElementById('max-energy').innerText = max;
-            document.getElementById('lvl-tap').innerText = tapLvl;
-            document.getElementById('lvl-eng').innerText = engLvl;
-            document.getElementById('user-tag').innerText = isPremium ? "👑 " + nick.toUpperCase() : "";
-            document.getElementById('p-nick').innerText = nick;
             document.getElementById('p-suffix').innerText = suffix;
-
             localStorage.setItem('bal_'+userId, bal);
             localStorage.setItem('dia_'+userId, diamonds);
-            localStorage.setItem('prem_'+userId, isPremium);
-            localStorage.setItem('nick_'+userId, nick);
-            localStorage.setItem('tapLvl_'+userId, tapLvl);
-            localStorage.setItem('engLvl_'+userId, engLvl);
-            localStorage.setItem('subAt_'+userId, subAt);
-            if (localStorage.getItem('lock_'+userId) === 'true') document.getElementById('lock-screen').style.display = 'flex';
         }
 
-        const coin = document.getElementById('coin');
-        coin.addEventListener('pointerdown', (e) => {
-            if (eng > 0) {
-                let val = (isPremium ? 10 : 1) + tapLvl;
-                if (isBoosted) val *= 5; // 5X BOOST
-                bal += val; eng--; updateUI();
-                const el = document.createElement('div');
-                el.className = 'tap-anim'; el.innerText = "+" + val;
-                el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px';
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 700);
-                coin.style.transform = "scale(0.91)";
-            }
+        // --- 3D TILT ---
+        const tiltBox = document.getElementById('tilt-box');
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 10;
+            const y = (window.innerHeight / 2 - e.pageY) / 10;
+            tiltBox.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
         });
-        coin.addEventListener('pointerup', () => coin.style.transform = "scale(1)");
 
-        function activateBoost() {
-            isBoosted = true;
-            document.body.classList.add('boosted');
-            tg.showAlert("🔥 5X SUPERNOVA ACTIVATED!");
-            showTab('home', document.querySelectorAll('.nav-item')[0]);
-            setTimeout(() => { isBoosted = false; document.body.classList.remove('boosted'); tg.showAlert("Boost Expired."); }, 30000);
+        // --- TAPPING ---
+        document.getElementById('coin').onclick = (e) => {
+            if (eng > 0) {
+                let v = isElite ? 15 : 1;
+                bal += v; eng--; updateUI();
+                const t = document.createElement('div');
+                t.style.position = 'absolute'; t.style.left = e.clientX+'px'; t.style.top = e.clientY+'px';
+                t.innerText = "+"+v; t.style.fontSize = '40px'; t.style.fontWeight='900'; t.style.color='var(--gold)';
+                t.style.pointerEvents='none'; t.style.transition='0.7s'; document.body.appendChild(t);
+                setTimeout(() => { t.style.transform = 'translateY(-150px)'; t.style.opacity='0'; }, 10);
+                setTimeout(() => t.remove(), 700);
+            }
+        };
+
+        function activateElite() {
+            const code = document.getElementById('code-input').value;
+            const name = document.getElementById('nick-input').value || "Elite User";
+            if (code.includes("PRINCE")) {
+                isElite = true; nick = name;
+                localStorage.setItem('elite_'+userId, 'true');
+                localStorage.setItem('nick_'+userId, nick);
+                document.getElementById('elite-name').innerText = name;
+                document.getElementById('elite-cert').style.display = 'flex';
+                celebrate('elite');
+            }
         }
 
-        function runAds() {
-            window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 2000; updateUI(); }).catch(() => tg.showAlert("Ad server busy."));
-        }
+        function closeCert() { document.getElementById('elite-cert').style.display = 'none'; }
 
-        function buyUpgrade(t) {
-            const cost = 500 * (t === 'tap' ? tapLvl : engLvl);
-            if (bal >= cost) { bal -= cost; if(t==='tap') tapLvl++; else engLvl++; updateUI(); }
-            else tg.showAlert("Need more coins!");
-        }
-
-        function activatePremium() {
-            const expected = "PRINCE2026" + (suffix * 4 + subAt * 12);
-            if (document.getElementById('code-input').value.trim() === expected) {
-                isPremium = true; nick = document.getElementById('nick-input').value || "PREMIUM";
-                subAt++; updateUI(); tg.showAlert("👑 PREMIUM UNLOCKED!");
-            } else tg.showAlert("Invalid Code.");
+        function celebrate(type) {
+            const colors = type === 'elite' ? ['#f3ba2f', '#ffffff'] : ['#00ff88', '#00d2ff'];
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: colors });
         }
 
         function requestRedeem() {
-            if (diamonds >= 1) { localStorage.setItem('lock_'+userId, 'true'); window.open(`https://wa.me/2348124647818?text=Redeem Request Suffix: ${suffix}`); updateUI(); }
-        }
-
-        function clearDiamond() {
-            if (document.getElementById('clear-input').value.trim() === "Clear" + (suffix * 2)) {
-                diamonds--; localStorage.removeItem('lock_'+userId);
-                document.getElementById('lock-screen').style.display = 'none'; updateUI();
+            if (diamonds >= 1) {
+                diamonds--; updateUI();
+                window.open(`https://wa.me/2348124647818?text=Redeem Diamond Suffix: ${suffix}`);
             }
         }
 
-        function shareRef() {
-            const link = `https://t.me/crypt7tapbot/play?startapp=${userId}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Play Crypto Tap! Earn coins and redeem airtime! 🪙`);
-        }
+        function runAds() { window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 2000; updateUI(); }); }
 
-        function safeReset() {
-            tg.showConfirm("Wipe all data?", (ok) => { if(ok) { localStorage.clear(); location.reload(); } });
-        }
-
-        function sendProof() { window.open(`https://wa.me/2348124647818?text=Payment Proof Suffix: ${suffix}`); }
-        
         function showTab(id, el) { 
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active'); el.classList.add('active');
         }
 
-        function initStars() {
+        function initNebula() {
             const n = document.getElementById('nebula');
-            for(let i=0; i<60; i++) {
+            for(let i=0; i<80; i++) {
                 const s = document.createElement('div');
                 s.className = 'star';
-                s.style.width = s.style.height = Math.random()*3.5+'px';
+                s.style.width = s.style.height = Math.random()*4+'px';
                 s.style.left = Math.random()*100+'%';
                 s.style.top = Math.random()*100+'%';
-                s.style.setProperty('--d', Math.random()*3+2+'s');
+                s.style.setProperty('--s', Math.random()*5+5+'s');
                 n.appendChild(s);
             }
         }
 
-        setInterval(() => { const m = 1000 + (engLvl * 200); if (eng < m) { eng++; updateUI(); } }, 1000);
+        setInterval(() => { if (eng < 1000) { eng++; updateUI(); } }, 1000);
         updateUI();
     </script>
 </body>
