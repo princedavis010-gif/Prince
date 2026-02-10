@@ -3,49 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap: 3D Dynamics</title>
-    <script src="https://adsgram.ai/sdk/v1/adman.js"></script>
+    <title>Crypto Tap: Official Build</title>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #05070a; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
-        
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); user-select: none; }
-
         .nebula { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #1a1c2c, #05070a); }
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.6; animation: drift var(--s) linear infinite; }
         @keyframes drift { from { transform: translateY(100vh); } to { transform: translateY(-10vh); } }
-        
-        /* 3D PERSPECTIVE CONTAINER */
-        .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px; padding-bottom: 100px; }
-
+        .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; perspective: 1000px; padding-bottom: 80px; }
         .coin-wrapper { position: relative; width: 320px; height: 320px; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
-        
-        .coin-btn { width: 100%; height: 100%; background: radial-gradient(circle at 30% 30%, #ffe08a, #f3ba2f 50%, #8e6d1a); border-radius: 50%; border: 12px solid #3d2f07; box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(243,186,47,0.3); display: flex; align-items: center; justify-content: center; font-size: 160px; color: #3d2f07; font-weight: 900; transform: translateZ(20px); pointer-events: none; }
-
-        /* OVERLAY FOR TOUCH TRACKING */
+        .coin-btn { width: 100%; height: 100%; background: radial-gradient(circle at 30% 30%, #ffe08a, #f3ba2f 50%, #8e6d1a); border-radius: 50%; border: 12px solid #3d2f07; box-shadow: 0 30px 60px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 160px; color: #3d2f07; font-weight: 900; }
         .touch-surface { position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; z-index: 10; cursor: pointer; }
-
         .tap-anim { position: absolute; color: var(--gold); font-size: 45px; font-weight: 900; animation: floatUp 0.7s forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 15px #000; }
         @keyframes floatUp { to { opacity: 0; transform: translateY(-220px) scale(1.6); } }
-
-        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
+        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; width: 100%; }
         .container.active { display: flex; }
-
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 18px; border-radius: 20px; font-weight: 800; border: none; width: 90%; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
         .nav { height: 85px; background: rgba(0,0,0,0.95); display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 11px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
     </style>
 </head>
-<body onload="initNebula(); checkReferral();">
+<body onload="initNebula();">
     <div class="nebula" id="nebula"></div>
 
     <div id="home" class="container active">
         <div id="balance" style="font-size: 70px; font-weight: 900; color: var(--gold);">0</div>
         <div style="font-size: 24px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
-        <div style="margin: 10px 0; color: #ccc; font-weight: bold;">⚡ <span id="energy">1000</span> / 1000</div>
+        <div style="margin: 10px 0; color: #ccc;">⚡ <span id="energy">1000</span> / 1000</div>
         
         <div class="game-area">
             <div class="coin-wrapper" id="tilt-card">
@@ -54,11 +42,11 @@
             </div>
         </div>
         
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="runAds()">📺 WATCH AD (+2,000)</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showAdsgramAd()">📺 REWARD AD (+2,000)</button>
     </div>
 
     <div id="settings" class="container">
-        <h2 style="color:var(--gold);">ACCOUNT</h2>
+        <h2 style="color:var(--gold);">STATS</h2>
         <div id="p-suffix" style="font-size: 20px; color: var(--green); margin-bottom: 20px;"></div>
         <button class="btn-gold" onclick="requestRedeem()">REDEEM DIAMOND</button>
     </div>
@@ -77,6 +65,9 @@
         let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
         let eng = 1000;
 
+        // INITIALIZE ACCORDING TO OFFICIAL DOCS
+        const AdController = window.Adsgram.init({ blockId: "22719" });
+
         function updateUI() {
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
@@ -86,43 +77,41 @@
             localStorage.setItem('dia_'+userId, diamonds);
         }
 
-        // --- DYNAMIC 3D TILT ENGINE ---
+        // OFFICIAL SHOW BANNED METHOD FROM DOCS
+        function showAdsgramAd() {
+            AdController.show().then((result) => {
+                // SUCCESS: Reward the user
+                bal += 2000;
+                updateUI();
+                tg.showAlert("Congratulations! You earned 2,000 coins.");
+            }).catch((result) => {
+                // ERROR or CANCEL: Show description from SDK
+                tg.showAlert("Ad not finished: " + (result.description || "Try again later"));
+            });
+        }
+
+        // 3D TILT ENGINE
         const tiltCard = document.getElementById('tilt-card');
         const touchPad = document.getElementById('touch-pad');
 
         function processTap(clientX, clientY) {
             if (eng <= 0) return;
-            
-            // Calculate rotation based on tap position
             const rect = touchPad.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            
-            const rotateY = ((clientX - centerX) / (rect.width / 2)) * 25; // Max 25deg
-            const rotateX = ((centerY - clientY) / (rect.height / 2)) * 25; 
-
+            const rotateY = ((clientX - centerX) / (rect.width / 2)) * 25;
+            const rotateX = ((centerY - clientY) / (rect.height / 2)) * 25;
             tiltCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(0.92)`;
-            
-            // Logic for rewards
             bal++; eng--; updateUI();
             createTapAnim(clientX, clientY, 1);
-
-            // Snap back
-            setTimeout(() => {
-                tiltCard.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
-            }, 100);
+            setTimeout(() => { tiltCard.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)"; }, 100);
         }
 
         touchPad.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touches = e.changedTouches;
-            for (let i = 0; i < touches.length; i++) {
-                processTap(touches[i].clientX, touches[i].clientY);
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                processTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
             }
-        });
-
-        touchPad.addEventListener('mousedown', (e) => {
-            processTap(e.clientX, e.clientY);
         });
 
         function createTapAnim(x, y, val) {
@@ -131,22 +120,6 @@
             el.style.left = x + 'px'; el.style.top = y + 'px';
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 700);
-        }
-
-        function runAds() {
-            window.Adsgram.init({ blockId: "22719" }).show().then(() => {
-                bal += 2000; updateUI();
-                tg.showAlert("Ad Success! +2,000 Coins");
-            }).catch(e => tg.showAlert("Ad not ready. Try VPN."));
-        }
-
-        function checkReferral() {
-            const p = new URLSearchParams(window.location.search);
-            if (p.get('startapp') && !localStorage.getItem('isOld_'+userId)) {
-                tg.showAlert("Referred by: " + p.get('startapp'));
-                localStorage.setItem('isOld_'+userId, 'true');
-            }
-            updateUI();
         }
 
         function requestRedeem() {
@@ -167,7 +140,7 @@
             for(let i=0; i<60; i++) {
                 const s = document.createElement('div');
                 s.className = 'star';
-                s.style.width = s.style.height = Math.random()*3.5+'px';
+                s.style.width = s.style.height = Math.random()*3+'px';
                 s.style.left = Math.random()*100+'%';
                 s.style.top = Math.random()*100+'%';
                 s.style.setProperty('--s', Math.random()*5+5+'s');
