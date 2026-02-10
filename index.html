@@ -22,7 +22,7 @@
         .container.active { display: flex; }
         
         /* AD BUTTON PHYSICS */
-        .btn-gold { background: linear-gradient(to bottom, #f3ba2f, #bf9524); color: #403108; padding: 15px; border-radius: 14px; font-weight: 800; border: none; width: 95%; text-transform: uppercase; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 0 #8e6d1a; transition: transform 0.05s, box-shadow 0.05s; }
+        .btn-gold { background: linear-gradient(to bottom, #f3ba2f, #bf9524); color: #403108; padding: 15px; border-radius: 14px; font-weight: 800; border: none; width: 95%; text-transform: uppercase; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 0 #8e6d1a; transition: transform 0.05s, box-shadow 0.05s; outline: none; }
         .btn-gold:active { transform: translateY(4px); box-shadow: 0 1px 0 #8e6d1a; }
         
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); width: 90%; padding: 15px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 12px; }
@@ -60,7 +60,7 @@
             <div class="coin-btn" id="coin">P</div>
         </div>
         
-        <button class="btn-gold" style="background: var(--dia); color: #004a5c;" onclick="runAd('coins')">📺 Watch Ad (+1,000)</button>
+        <button class="btn-gold" style="background: var(--dia); color: #004a5c;" onclick="runAd()">📺 Watch Ad (+1,000)</button>
     </div>
 
     <div id="boost" class="container">
@@ -73,13 +73,17 @@
             </div>
         </div>
         <div class="glass-card">
-            <h4 style="color: var(--dia); margin:0;">Referral Rewards</h4>
+            <h4 style="color: var(--dia); margin:0;">Perfect Referral</h4>
             <button class="btn-gold" onclick="shareRef()">Invite Friend</button>
             <button id="claim-ref-btn" class="btn-gold" style="background:var(--green); display:none;" onclick="claimReferral()">Claim Welcome Bonus</button>
         </div>
         <div class="glass-card" style="display:flex; justify-content: space-between; align-items: center;">
             <div><h4 style="margin:0; color:var(--gold);">Recharge Speed</h4><p style="margin:0; font-size:10px;">Lvl <span id="lvl-speed">1</span></p></div>
             <button class="btn-gold" style="width:auto; padding: 8px 15px; margin:0;" onclick="buyBoost('speed')">💰 <span id="cost-speed">250</span></button>
+        </div>
+        <div class="glass-card" style="display:flex; justify-content: space-between; align-items: center;">
+            <div><h4 style="margin:0; color:var(--gold);">Energy Tank</h4><p style="margin:0; font-size:10px;">Lvl <span id="lvl-tank">1</span></p></div>
+            <button class="btn-gold" style="width:auto; padding: 8px 15px; margin:0;" onclick="buyBoost('tank')">💰 <span id="cost-tank">250</span></button>
         </div>
     </div>
 
@@ -91,9 +95,11 @@
                 <p style="color: var(--gold); font-size: 20px; font-weight: bold;">OPay: 8124647818</p>
                 <button class="btn-gold" onclick="sendWA()">Message Admin</button>
             </div>
-            <input type="text" id="secret-code" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff;" placeholder="Verification Code">
-            <input type="text" id="username-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff;" placeholder="Set Username">
-            <button class="btn-gold" style="background: var(--green);" onclick="strictSubscribe()">Activate Premium</button>
+            <div style="text-align:center; width:100%; margin-top:20px;">
+                <input type="text" id="secret-code" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Verification Code">
+                <input type="text" id="username-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border: 1px solid #333;" placeholder="Set Username">
+                <button class="btn-gold" style="background: var(--green);" onclick="strictSubscribe()">Activate Premium</button>
+            </div>
         </div>
         <div id="sub-locked-view" style="display:none; color:var(--green); text-align:center;"><h3>✅ ELITE MEMBER ACTIVATED</h3></div>
     </div>
@@ -102,14 +108,16 @@
         <h2 style="color: var(--gold);">Settings</h2>
         <div class="glass-card" style="text-align:center;">
             <p id="p-username" style="font-size: 22px; color: var(--green); font-weight: bold;">GUEST</p>
-            <p style="color:#888;">Wallet: <span id="p-lifetime" style="color:var(--gold);">0</span> Coins</p>
+            <p style="color:#888;">UID: <span style="color:white;">...</span><span id="p-suffix"></span></p>
         </div>
 
         <div class="glass-card" style="text-align:center;">
-            <h4 style="color: var(--dia); margin:0;">Airtime Redemption</h4>
-            <p style="font-size:12px; color:#aaa;">Redeem 1 Diamond (20k Coins) for ₦100</p>
-            <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="requestRedeem()">Redeem Diamond</button>
-            <p style="font-size:10px; color:var(--orange); margin-top:5px;">Wait for Admin reply to clear Diamonds.</p>
+            <h4 style="color: var(--dia); margin:0;">Redeem Diamond (20k Coins)</h4>
+            <button class="btn-gold" style="background: var(--dia); color:#000; width:100%;" onclick="requestRedeem()">Request Airtime (₦100)</button>
+            <div style="margin-top:15px; display:flex; gap:5px;">
+                <input type="text" id="admin-clear-input" class="btn-gold" style="background:rgba(0,0,0,0.5); color:#fff; border:1px solid #333; flex:2; margin:0;" placeholder="Clearance Code">
+                <button class="btn-gold" style="background:var(--green); flex:1; margin:0;" onclick="clearDiamond()">Clear</button>
+            </div>
         </div>
 
         <button class="btn-gold" style="background:var(--red); color:#fff; margin-top:50px;" onclick="factoryReset()">⚠️ Factory Reset App</button>
@@ -128,29 +136,34 @@
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "00";
         const suffix = parseInt(String(userId).slice(-2));
         const REQUIRED_CODE = "Prince2026" + (suffix * 3 + 7);
+        const BOT_USERNAME = "PrinceTap_bot";
 
-        // PERSISTENT DATA
         let bal = parseInt(localStorage.getItem('bal_'+userId)) || 0;
         let lifetime = parseInt(localStorage.getItem('life_'+userId)) || 0;
         let diamonds = parseInt(localStorage.getItem('dia_'+userId)) || 0;
         let isPremium = localStorage.getItem('premium_'+userId) === 'true';
         let userNick = localStorage.getItem('nick_'+userId) || "GUEST";
         let lvlSpeed = parseInt(localStorage.getItem('lvlSpeed_'+userId)) || 1;
+        let lvlTank = parseInt(localStorage.getItem('lvlTank_'+userId)) || 1;
         let eng = 1000, tapCounter = parseInt(localStorage.getItem('tapCount_'+userId)) || 0;
         let dTurbo = parseInt(localStorage.getItem('dTurbo_'+userId)) ?? 4;
         let dRefill = parseInt(localStorage.getItem('dRefill_'+userId)) ?? 3;
         let isTurbo = false;
 
         function updateUI() {
+            const maxEng = 500 + (lvlTank * 500);
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = diamonds;
             document.getElementById('energy').innerText = eng;
+            document.getElementById('max-energy').innerText = maxEng;
             document.getElementById('lvl-speed').innerText = lvlSpeed;
             document.getElementById('cost-speed').innerText = (lvlSpeed + 1) * 250;
+            document.getElementById('lvl-tank').innerText = lvlTank;
+            document.getElementById('cost-tank').innerText = (lvlTank + 1) * 250;
             document.getElementById('d-turbo').innerText = dTurbo;
             document.getElementById('d-refill').innerText = dRefill;
             document.getElementById('p-username').innerText = userNick.toUpperCase();
-            document.getElementById('p-lifetime').innerText = bal.toLocaleString();
+            document.getElementById('p-suffix').innerText = suffix;
             document.getElementById('user-display').innerText = isPremium ? "👑 " + userNick.toUpperCase() : "";
             
             if (isPremium) {
@@ -162,12 +175,16 @@
             localStorage.setItem('life_'+userId, lifetime);
             localStorage.setItem('dia_'+userId, diamonds);
             localStorage.setItem('lvlSpeed_'+userId, lvlSpeed);
+            localStorage.setItem('lvlTank_'+userId, lvlTank);
             localStorage.setItem('tapCount_'+userId, tapCounter);
             localStorage.setItem('dTurbo_'+userId, dTurbo);
             localStorage.setItem('dRefill_'+userId, dRefill);
         }
 
-        // --- TURBO SYSTEM ---
+        // DAILY RESET logic
+        let lastDate = localStorage.getItem('lastDate_'+userId);
+        if (lastDate !== new Date().toDateString()) { dTurbo = 4; dRefill = 3; localStorage.setItem('lastDate_'+userId, new Date().toDateString()); }
+
         function useDaily(type) {
             if (type === 'turbo' && dTurbo > 0 && !isTurbo) {
                 dTurbo--; isTurbo = true;
@@ -180,34 +197,69 @@
                     if(s <= 0) { clearInterval(t); isTurbo = false; document.getElementById('turbo-timer').style.display = 'none'; document.getElementById('coin').classList.remove('turbo'); document.getElementById('ring').style.display = 'none'; }
                 }, 1000);
             } else if (type === 'refill' && dRefill > 0) {
-                dRefill--; eng = 1000; tg.showAlert("Energy Refilled!");
+                dRefill--; eng = 500 + (lvlTank * 500); tg.showAlert("Energy Refilled!");
             }
             updateUI();
         }
 
-        // --- REDEMPTION SYSTEM ---
-        function requestRedeem() {
-            if (bal >= 20000) {
-                const txId = "TX-" + Math.floor(Math.random() * 90000 + 10000);
-                // Keep the diamond value, just message admin. Diamond is ONLY deducted when Admin clears it.
-                window.open(`https://wa.me/2348124647818?text=REDEEM REQUEST%0AUser: ${userNick}%0AUID: ${userId}%0ATXID: ${txId}%0AStatus: Pending ₦100 Airtime`);
-                tg.showAlert("Redemption request sent! Your Diamonds remain until Admin verifies your reward via WhatsApp.");
-            } else { tg.showAlert("Need 20,000 coins for 1 Diamond!"); }
+        // REFERRAL detection
+        const referrerId = tg.initDataUnsafe.start_param;
+        if (referrerId && !localStorage.getItem('refClaimed_'+userId)) document.getElementById('claim-ref-btn').style.display = 'block';
+        function claimReferral() {
+            bal += 2000; localStorage.setItem('refClaimed_'+userId, 'true');
+            document.getElementById('claim-ref-btn').style.display = 'none'; tg.showAlert("Welcome Bonus +2k!");
+            updateUI();
+        }
+        function shareRef() {
+            const link = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join Prince Tap!`);
+        }
+        function copyRef() {
+            const link = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
+            const el = document.createElement('textarea'); el.value = link; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            tg.showAlert("Link Copied!");
         }
 
-        // --- TAPPING & AD COMPULSORY ---
+        // ADMIN CLEARANCE & TXID
+        function requestRedeem() {
+            if (bal >= 20000) {
+                const checkDigit = suffix + 10;
+                const txId = "PT-" + Math.floor(Math.random() * 900 + 100) + checkDigit;
+                window.open(`https://wa.me/2348124647818?text=REDEEM REQUEST%0AUser: ${userNick}%0AUID Suffix: ${suffix}%0ATXID: ${txId}`);
+                tg.showAlert("Request Sent! TXID: " + txId);
+            } else { tg.showAlert("Need 20,000 coins!"); }
+        }
+        function clearDiamond() {
+            if (document.getElementById('admin-clear-input').value.trim() === "Clear" + (suffix * 2)) {
+                if (bal >= 20000) { bal -= 20000; updateUI(); tg.showAlert("Diamond Cleared!"); document.getElementById('admin-clear-input').value = ""; }
+            } else { tg.showAlert("Invalid Clearance Code!"); }
+        }
+
+        // UNLIMITED FEED
+        const namesPool = ["Abigail", "Benson", "Chidi", "Dada", "Efe", "Femi", "Gani", "Hassan", "Ife", "Joy", "Kola", "Ladi", "Musa", "Ngozi", "Obi", "Patience", "Quasim", "Rabi", "Sola", "Tunde", "Uche", "Victor", "Wale", "Yemi", "Zainab", "Ali", "Bassey", "Cynthia", "Danjuma", "Evelyn", "Fidelis", "Grace", "Hope", "Idris", "John", "Kemi", "Lucky", "Moyo", "Nkechi", "Olu", "Paul", "Queen", "Rose", "Segun", "Taiwo", "Umar", "Vera", "Wisdom", "Yusuf", "Zion"];
+        function showFeed() {
+            const feed = document.getElementById('reward-feed');
+            let pool = [...namesPool]; if (isPremium) pool.push(userNick);
+            const name = pool[Math.floor(Math.random() * pool.length)];
+            const actions = ["just Subscribed!", "redeemed a Diamond!", "reached 4k taps!", "activated Turbo!", "watching Ads!"];
+            feed.innerText = `🎉 Member ${name.toUpperCase()} ${actions[Math.floor(Math.random()*actions.length)]}`;
+            feed.classList.add('show');
+            setTimeout(() => feed.classList.remove('show'), 4000);
+            setTimeout(showFeed, 10000 + Math.random() * 5000);
+        }
+        showFeed();
+
+        // TAPPING
         const coin = document.getElementById('coin');
         coin.addEventListener('pointerdown', (e) => {
             if (eng > 0 || isTurbo) {
                 const val = (isPremium ? 10 : 1) * (isTurbo ? 5 : 1); 
                 bal += val; if(!isTurbo) eng--; tapCounter++; 
                 
-                // Tap Animation
                 const float = document.createElement('div');
                 float.className = 'tap-anim';
                 float.innerText = '+' + val;
-                float.style.left = (e.clientX - 20) + 'px';
-                float.style.top = (e.clientY - 40) + 'px';
+                float.style.left = (e.clientX - 20) + 'px'; float.style.top = (e.clientY - 40) + 'px';
                 document.body.appendChild(float);
                 setTimeout(() => float.remove(), 800);
 
@@ -216,46 +268,31 @@
                 updateUI();
 
                 if (tapCounter >= 4000) {
-                    tapCounter = 0;
-                    tg.showAlert("Compulsory Ad Milestone Reached!");
-                    window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); });
+                    tapCounter = 0; tg.showAlert("Milestone! Ad Bonus: +1,000.");
+                    window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch(() => updateUI());
                 }
             }
         });
         coin.addEventListener('pointerup', () => coin.style.transform = "perspective(1000px) scale(1)");
 
         function runAd() {
-            window.Adsgram.init({ blockId: "22672" }).show()
-                .then(() => { bal += 1000; updateUI(); })
-                .catch((err) => { tg.showAlert("AD UNAVAILABLE: " + (err.description || "Check connection.")); });
+            window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 1000; updateUI(); }).catch((err) => tg.showAlert("Ad unavailable. Check network."));
         }
-
-        function shareRef() {
-            const link = `https://t.me/PrinceTap_bot/play?startapp=${userId}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join Prince Tap! 🚀`);
-        }
-
-        function factoryReset() {
-            tg.showConfirm("Are you sure? All coins and progress will be deleted forever!", (ok) => {
-                if(ok) { localStorage.clear(); window.location.reload(); }
-            });
-        }
-
         function strictSubscribe() {
             if (document.getElementById('secret-code').value.trim() === REQUIRED_CODE) {
                 userNick = document.getElementById('username-input').value.trim() || "ELITE";
-                isPremium = true; localStorage.setItem('premium_'+userId, 'true'); localStorage.setItem('nick_'+userId, userNick); updateUI();
+                isPremium = true; updateUI(); tg.showAlert("Elite Activated!");
             } else tg.showAlert("Wrong Code!");
         }
-
+        function factoryReset() { tg.showConfirm("Delete all progress?", (ok) => { if(ok) { localStorage.clear(); window.location.reload(); } }); }
         function showTab(id, el) {
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active'); el.classList.add('active');
         }
-
-        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium Upgrade Request: ${userId}`); }
-        setInterval(() => { if (eng < 1000) { eng += lvlSpeed; if (eng > 1000) eng = 1000; updateUI(); } }, 1000);
+        function sendWA() { window.open(`https://wa.me/2348124647818?text=Premium: ${userId}`); }
+        setInterval(() => { if (eng < (500 + lvlTank * 500)) { eng += lvlSpeed; updateUI(); } }, 1000);
+        setInterval(() => { if (isPremium) { bal += 10; updateUI(); } }, 1000);
         updateUI();
     </script>
 </body>
