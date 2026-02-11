@@ -1,228 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v56.2</title>
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <style>
-        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #010205; }
-        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
-        body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
-        .nebula-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background: #010205; }
-        .nebula-glow { position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle, rgba(160,32,240,0.4) 0%, rgba(0,210,255,0.1) 40%, transparent 70%); opacity: 0; transition: 1.5s; z-index: -1; pointer-events: none; }
-        body.boost-active .nebula-glow { opacity: 1; animation: supernova 3s infinite linear; }
-        @keyframes supernova { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.3) rotate(360deg); } }
-        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
-        .container.active { display: flex; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .coin-btn { width: 310px; height: 310px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 150px; font-weight: 900; transition: 0.1s; transform-style: preserve-3d; cursor: pointer; }
-        .skin-gold { background: radial-gradient(circle, #ffe08a, #f3ba2f, #8e6d1a); border: 12px solid #3d2f07; color: #3d2f07; box-shadow: 0 15px 45px rgba(243,186,47,0.4); }
-        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
-        .nav-item.active { color: var(--gold); }
-        #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; padding: 30px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Tap Master Ultimate</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<!-- Adsgram -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<style>
+:root { --gold:#f3ba2f; --green:#00ff88; --dia:#00d2ff; --purple:#a020f0; --bg:#010205; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:'Segoe UI',sans-serif;background:var(--bg);color:white;overflow:hidden;display:flex;flex-direction:column;align-items:center;}
+.container{display:flex;flex-direction:column;align-items:center;width:100%;padding:20px;}
+.coin-btn{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#ffe08a,#f3ba2f,#8e6d1a);display:flex;align-items:center;justify-content:center;font-size:100px;font-weight:900;cursor:pointer;user-select:none;margin:15px 0;transition:0.1s;transform-style:preserve-3d;}
+.btn-gold{padding:12px 20px;border:none;border-radius:12px;background:var(--gold);color:#221a04;font-weight:bold;cursor:pointer;margin:5px;}
+#balance{font-size:48px;font-weight:900;margin-bottom:10px;cursor:pointer;}
+#diamonds{font-size:20px;font-weight:bold;color:var(--dia);margin-bottom:20px;}
+.nebula-bg{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;background:#010205;}
+.nebula-glow{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:radial-gradient(circle, rgba(160,32,240,0.4) 0%, rgba(0,210,255,0.1) 40%, transparent 70%);opacity:0;transition:1.5s;z-index:-1;pointer-events:none;}
+body.boost-active .nebula-glow{opacity:1;animation:supernova 3s infinite linear;}
+@keyframes supernova{0%{transform:scale(1) rotate(0deg);}100%{transform:scale(1.3) rotate(360deg);}}
+#admin-panel{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;overflow:auto;padding:20px;}
+.admin-table{width:100%;border-collapse:collapse;margin-top:20px;}
+.admin-table th, .admin-table td{border:1px solid #444;padding:8px;text-align:center;}
+.admin-table th{background:var(--gold);color:#000;}
+.admin-table input{width:60px;text-align:center;border-radius:4px;border:none;}
+#leaderboard{margin-top:20px;width:100%;border-collapse:collapse;}
+#leaderboard th, #leaderboard td{border:1px solid #444;padding:8px;text-align:center;}
+#leaderboard th{background:var(--gold);color:#000;}
+</style>
 </head>
-<body onload="initApp();">
-    <div id="admin-panel">
-        <h2 style="color:var(--gold);">ADMIN COMMAND</h2>
-        <div class="glass-card"><p>ID Suffix: <span id="adm-suffix">--</span></p><p>Verification Salt: <span id="adm-salt">--</span></p></div>
-        <button class="btn-gold" onclick="closeAdmin()">BACK TO GAME</button>
+<body>
+
+<div class="nebula-bg"><div class="nebula-glow"></div></div>
+
+<div class="container" id="game-container">
+    <div id="balance">0</div>
+    <div>💎 <span id="diamonds">0</span></div>
+    <div class="coin-btn" id="coin">P</div>
+    <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
+    <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
+    <button class="btn-gold" id="boost-btn">Activate Boost (5X)</button>
+    <button class="btn-gold" id="ad-btn">📺 Watch Ad (+2000)</button>
+    <input type="text" id="premium-code" placeholder="Enter Premium Code" style="margin:10px;padding:8px;border-radius:8px;">
+    <button class="btn-gold" id="premium-btn">Activate Premium</button>
+    <button class="btn-gold" id="redeem-btn">Redeem 1 Diamond</button>
+    <div class="glass-card" style="background: rgba(255,255,255,0.06); border-radius: 18px; padding:10px; margin-top:15px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <p>Follow @ogprincedavis5081 on TikTok and like all videos</p>
+        <button class="btn-gold" id="tiktok-btn" style="background:#ff0050; color:white;">GO TO TIKTOK (+5000)</button>
     </div>
+    <h3 style="margin-top:20px;">Leaderboard</h3>
+    <table id="leaderboard">
+        <thead><tr><th>Rank</th><th>User</th><th>Coins</th></tr></thead>
+        <tbody id="leaderboard-body"></tbody>
+    </table>
+</div>
 
-    <div class="nebula-bg"><div class="nebula-glow"></div></div>
+<div id="admin-panel">
+    <h2 style="color:var(--gold); text-align:center;">ADMIN DASHBOARD</h2>
+    <button class="btn-gold" onclick="closeAdmin()">Close Admin Panel</button>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>User UID</th>
+                <th>Coins</th>
+                <th>Diamonds</th>
+                <th>Boosts</th>
+                <th>Energy</th>
+                <th>Premium</th>
+                <th>Referrals</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="admin-users"></tbody>
+    </table>
+</div>
 
-    <div id="home" class="container active">
-        <div id="balance" onclick="adminTrigger()" style="font-size: 55px; font-weight: 900; color: var(--gold); cursor:pointer;">0</div>
-        <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
-        <div class="coin-wrapper"><div class="coin-btn skin-gold" id="coin">P</div></div>
-        <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
-        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showAd()">📺 WATCH AD (+2,000)</button>
-    </div>
+<script>
+// Firebase config
+const firebaseConfig = {apiKey:"YOUR_API_KEY",authDomain:"YOUR_PROJECT.firebaseapp.com",projectId:"YOUR_PROJECT",storageBucket:"YOUR_PROJECT.appspot.com",messagingSenderId:"SENDER_ID",appId:"APP_ID"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const auth=firebase.auth();
 
-    <div id="tasks" class="container">
-        <h2 style="color:var(--gold);">TASKS</h2>
-        <div class="glass-card">
-            <p>Follow @ogprincedavis5081 on TikTok. Like & Comment on all videos.</p>
-            <button id="tiktok-btn" class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">GO TO TIKTOK (+5,000)</button>
-        </div>
-    </div>
+// Adsgram
+const AdController = window.Adsgram.init({ blockId: "22672" });
 
-    <div id="shop" class="container">
-        <h2 style="color:var(--gold);">BOOSTERS</h2>
-        <div class="glass-card">
-            <h3>🤖 AUTO-TAP BOT</h3>
-            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">BUY FOR 15,000 COINS</button>
-        </div>
-        <div class="glass-card">
-            <h3>⚡ WARP BOOST (5X)</h3>
-            <p>Daily Left: <span id="boost-count">2</span>/2</p>
-            <button class="btn-gold" id="boost-btn" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE (20s)</button>
-            <button class="btn-gold" id="boost-ad-btn" style="display:none; background:var(--dia); color:black;" onclick="showAdForBoost()">WATCH AD FOR +1 BOOST</button>
-        </div>
-    </div>
+let uid, userData={coins:0,diamonds:0,boosts:2,energy:1000,isPremium:false,isBoosted:false,salt:1,referrals:0,referrer:null};
 
-    <div id="premium" class="container">
-        <h2 style="color:var(--gold);">ELITE SHOP</h2>
-        <div class="glass-card">
-            <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
-            <p>Premium (20x Tap): ₦200</p>
-            <p>OPay: <b>8124647818</b></p>
-            <button class="btn-gold" onclick="openWA('Proof of Payment')">SEND PROOF</button>
-        </div>
-        <div class="glass-card">
-            <input type="text" id="uname-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="USERNAME">
-            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="CODE">
-            <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE</button>
-        </div>
-        <button class="btn-gold" style="background:var(--dia); color:#000;" onclick="requestRedeem()">REDEEM DIAMOND (₦100)</button>
-    </div>
+// Referral from URL
+const urlParams = new URLSearchParams(window.location.search);
+const ref = urlParams.get('ref');
 
-    <div class="nav">
-        <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
-        <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
-        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Boost</div>
-        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
-        const suffix = uid.slice(-2);
-        const v = "v3_"; 
-
-        let bal = parseInt(localStorage.getItem(v+'bal_'+uid)) || 0;
-        let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
-        let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
-        let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
-        let adThreshold = 0, boosts = 2, eng = 1000, isBoosted = false, isPrem = localStorage.getItem(v+'prem_'+uid)==='true';
-        let userName = localStorage.getItem(v+'uname_'+uid) || "GUEST";
-        let adminTaps = 0;
-
-        const AdController = window.Adsgram.init({ blockId: "22672" });
-
-        function initApp() { updateUI(); if(hasBot) startBot(); }
-
-        function updateUI() {
-            if (bal >= 20000) { bal -= 20000; dia++; confetti(); }
-            document.getElementById('balance').innerText = bal.toLocaleString();
-            document.getElementById('diamonds').innerText = dia;
-            document.getElementById('boost-count').innerText = boosts;
-            document.getElementById('energy').innerText = eng;
-            document.getElementById('p-suffix').innerText = suffix;
-            document.getElementById('adm-suffix').innerText = suffix;
-            document.getElementById('adm-salt').innerText = salt;
-
-            const tkDone = localStorage.getItem(v+'task_tiktok_'+uid);
-            const tkBtn = document.getElementById('tiktok-btn');
-            if (tkDone === 'true' && tkBtn) {
-                tkBtn.innerText = "COMPLETED ✅";
-                tkBtn.style.background = "#333"; tkBtn.style.color = "#888"; tkBtn.onclick = null;
-            }
-
-            const botBtn = document.getElementById('bot-purchase-btn');
-            if (hasBot && botBtn) {
-                botBtn.innerText = "ACTIVE ✅";
-                botBtn.style.background = "#333"; botBtn.style.color = "#888"; botBtn.onclick = null;
-            }
-
-            localStorage.setItem(v+'bal_'+uid, bal);
-            localStorage.setItem(v+'dia_'+uid, dia);
-            localStorage.setItem(v+'salt_'+uid, salt);
-            localStorage.setItem(v+'prem_'+uid, isPrem);
-            localStorage.setItem(v+'uname_'+uid, userName);
-            localStorage.setItem(v+'bot_'+uid, hasBot);
+auth.signInAnonymously().then(async cred=>{
+    uid=cred.user.uid;
+    const userRef=db.collection('users').doc(uid);
+    const doc=await userRef.get();
+    if(doc.exists){userData=doc.data();}
+    else{
+        if(ref){userData.referrer=ref;}
+        await userRef.set(userData);
+        if(ref){
+            const refDoc=db.collection('users').doc(ref);
+            refDoc.get().then(d=>{
+                if(d.exists){const r=d.data(); refDoc.update({coins:(r.coins||0)+500,referrals:(r.referrals||0)+1});}
+            });
         }
+    }
+    updateUI();
+    loadLeaderboard();
+});
 
-        function handleTap(e) {
-            e.preventDefault();
-            const touches = e.changedTouches;
-            for (let i = 0; i < touches.length; i++) {
-                if (eng > 0) {
-                    let val = (isPrem ? 20 : 1) * (isBoosted ? 5 : 1);
-                    bal += val; eng--; adThreshold++; 
-                    const valEl = document.createElement('div');
-                    valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
-                    valEl.style.left = touches[i].clientX + 'px'; valEl.style.top = touches[i].clientY + 'px';
-                    document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800);
-                    
-                    const rect = document.getElementById('coin').getBoundingClientRect();
-                    const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 55;
-                    const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -55;
-                    // TILT ONLY - NO SHRINK
-                    document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-                    setTimeout(() => document.getElementById('coin').style.transform = "rotate(0)", 100);
-                    
-                    if(adThreshold >= 3000) { adThreshold = 0; showAd(); }
-                }
-            }
-            updateUI();
-        }
-        document.getElementById('coin').addEventListener('touchstart', handleTap);
+// Update UI
+function updateUI(){
+    document.getElementById('balance').innerText=userData.coins;
+    document.getElementById('diamonds').innerText=userData.diamonds;
+    document.getElementById('energy').innerText=userData.energy;
+    document.getElementById('boost-timer').innerText=userData.isBoosted?'WARP ACTIVE':'';
+    saveData();
+    loadLeaderboard();
+}
 
-        function activateBoost() {
-            if(boosts > 0 && !isBoosted) {
-                boosts--; isBoosted = true; document.body.classList.add('boost-active');
-                let sec = 20;
-                const t = setInterval(() => {
-                    sec--; document.getElementById('boost-timer').innerText = `WARP ACTIVE: ${sec}s`;
-                    if(sec <= 0) { 
-                        clearInterval(t); isBoosted = false; document.body.classList.remove('boost-active');
-                        document.getElementById('boost-timer').innerText = ""; 
-                        document.getElementById('boost-ad-btn').style.display = "block"; updateUI(); 
-                    }
-                }, 1000);
-            }
-        }
+// Save user
+function saveData(){db.collection('users').doc(uid).set(userData);}
 
-        function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
-        function buyBot() {
-            if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased!"); }
-            else { tg.showAlert("Insufficient Coins!"); }
-        }
-        function startBot() { setInterval(() => { bal += (isPrem ? 5 : 1); updateUI(); }, 3000); }
+// Coin Tap
+document.getElementById('coin').addEventListener('click',()=>{
+    if(userData.energy<=0)return;
+    let val=(userData.isPremium?20:1)*(userData.isBoosted?5:1);
+    userData.coins+=val;
+    userData.energy--;
+    confetti({particleCount:20,spread:90,origin:{y:0.6}});
+    updateUI();
+});
 
-        function activatePremium() {
-            if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
-                isPrem = true; salt++; updateUI(); tg.showAlert("👑 ELITE ACCESS!");
-            } else { tg.showAlert("INVALID CODE"); }
-        }
+// Boost
+document.getElementById('boost-btn').addEventListener('click',()=>{
+    if(userData.boosts<=0||userData.isBoosted)return;
+    userData.boosts--; userData.isBoosted=true;
+    saveData();
+    let sec=20;
+    const t=setInterval(()=>{sec--;document.getElementById('boost-timer').innerText=`WARP ACTIVE: ${sec}s`;if(sec<=0){clearInterval(t);userData.isBoosted=false;document.getElementById('boost-timer').innerText='';saveData();}},1000);
+});
 
-        function requestRedeem() { 
-            if(dia >= 1) { 
-                dia--; updateUI(); 
-                const secureId = `CPT-${suffix}-${Date.now().toString(36).toUpperCase()}`;
-                openWA(`REDEEM-₦100 | ID: ${suffix} | User: ${userName} | TXN: ${secureId} | Salt: ${salt}`); 
-            } 
-        }
+// Ads
+document.getElementById('ad-btn').addEventListener('click',()=>{AdController.show().then(()=>{userData.coins+=2000;updateUI();});});
 
-        function doTask(t, reward) {
-            const taskKey = v+'task_'+t+'_'+uid;
-            if (localStorage.getItem(taskKey) === 'true') return;
-            
-            // REVERTED: Back to simple web link for stability
-            window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
+// Premium
+document.getElementById('premium-btn').addEventListener('click',async ()=>{
+    const code=document.getElementById('premium-code').value.trim();
+    const res=await fetch(`https://YOUR_CLOUD_FUNCTIONS_URL/verifyPremium?uid=${uid}&code=${code}`);
+    const data=await res.json();
+    if(data.success){userData.isPremium=true;saveData();alert("Premium Activated!");}else alert("Invalid Code");
+});
 
-            setTimeout(() => {
-                bal += reward; localStorage.setItem(taskKey, 'true'); updateUI();
-                tg.showAlert("Task Verified! +5,000 Coins");
-            }, 5000);
-        }
+// Redeem
+document.getElementById('redeem-btn').addEventListener('click',async ()=>{
+    if(userData.diamonds<1)return alert("Not enough diamonds!");
+    const res=await fetch(`https://YOUR_CLOUD_FUNCTIONS_URL/redeemDiamond?uid=${uid}`);
+    const data=await res.json();
+    if(data.success){userData.diamonds--;saveData();alert("Redeemed ₦100");}else alert("Error redeeming");
+});
 
-        function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
-        function showAd() { AdController.show().then(() => { bal += 2000; updateUI(); }); }
-        function adminTrigger() { adminTaps++; if (adminTaps >= 5) { if(prompt("Pass:")==="Davis2026") document.getElementById('admin-panel').style.display='block'; adminTaps=0; } }
-        function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
-        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
-        setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 1500);
-    </script>
+// TikTok Task
+document.getElementById('tiktok-btn').addEventListener('click',()=>{
+    window.open("https://www.tiktok.com/@ogprincedavis5081","_blank");
+    setTimeout(()=>{userData.coins+=5000;saveData();alert("Task Verified! +5000 Coins");},5000);
+});
+
+// Leaderboard
+async function loadLeaderboard(){
+    const lb=document.getElementById('leaderboard-body'); lb.innerHTML='';
+    const snap=await db.collection('users').orderBy('coins','desc').limit(10).get();
+    let rank=1; snap.forEach(doc=>{const u=doc.data();const tr=document.createElement('tr');tr.innerHTML=`<td>${rank}</td><td>${doc.id}</td><td>${u.coins}</td>`;lb.appendChild(tr);rank++;});
+}
+
+// Admin Panel
+let adminTaps=0;
+document.getElementById('balance').addEventListener('click',()=>{
+    adminTaps++;
+    if(adminTaps>=5){const pwd=prompt("Enter Admin Password:");if(pwd==="Davis2026"){openAdmin();}adminTaps=0;}
+});
+
+async function openAdmin(){document.getElementById('admin-panel').style.display='block';loadAllUsers();}
+function closeAdmin(){document.getElementById('admin-panel').style.display='none';}
+async function loadAllUsers(){const tbody=document.getElementById('admin-users');tbody.innerHTML='';const snapshot=await db.collection('users').get();snapshot.forEach(doc=>{const u=doc.data();const tr=document.createElement('tr');tr.innerHTML=`<td>${doc.id}</td><td><input type="number" value="${u.coins}" onchange="updateUser('${doc.id}','coins',this.value)"></td><td><input type="number" value="${u.diamonds}" onchange="updateUser('${doc.id}','diamonds',this.value)"></td><td><input type="number" value="${u.boosts}" onchange="updateUser('${doc.id}','boosts',this.value)"></td><td><input type="number" value="${u.energy}" onchange="updateUser('${doc.id}','energy',this.value)"></td><td><input type="checkbox" ${u.isPremium?'checked':''} onchange="updateUser('${doc.id}','isPremium',this.checked)"></td><td>${u.referrals||0}</td><td><button onclick="deleteUser('${doc.id}')">Delete</button></td>`;tbody.appendChild(tr);});}
+
+function updateUser(userId,field,value){const ref=db.collection('users').doc(userId);let val=value;if(field==='isPremium'){val=Boolean(value);}else{val=Number(value);}ref.update({[field]:val});}
+function deleteUser(userId){db.collection('users').doc(userId).delete().then(()=>loadAllUsers());}
+
+// Energy regen
+setInterval(()=>{if(userData.energy<1000){userData.energy++;updateUI();}},1500);
+</script>
 </body>
 </html>
