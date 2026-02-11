@@ -103,7 +103,7 @@
         const tg = window.Telegram.WebApp;
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-2);
-        const v = "v2_"; 
+        const v = "v3_"; 
 
         let bal = parseInt(localStorage.getItem(v+'bal_'+uid)) || 0;
         let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
