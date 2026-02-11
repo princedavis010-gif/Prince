@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v56.1</title>
+    <title>Crypto Tap Master v56.2</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -157,7 +157,7 @@
                     const rect = document.getElementById('coin').getBoundingClientRect();
                     const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 55;
                     const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -55;
-                    // FIX: REMOVED SCALE(0.94) TO PREVENT SHRINKING
+                    // TILT ONLY - NO SHRINK
                     document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
                     setTimeout(() => document.getElementById('coin').style.transform = "rotate(0)", 100);
                     
@@ -207,10 +207,10 @@
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
-            try { window.location.replace("snssdk1233://user/profile/ogprincedavis5081"); } catch (e) {
-                window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
-            }
-            setTimeout(() => { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); }, 1000);
+            
+            // REVERTED: Back to simple web link for stability
+            window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
+
             setTimeout(() => {
                 bal += reward; localStorage.setItem(taskKey, 'true'); updateUI();
                 tg.showAlert("Task Verified! +5,000 Coins");
