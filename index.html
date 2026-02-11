@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap: Global Reset v54.0</title>
+    <title>Crypto Tap: v55.0 Final</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -38,10 +38,7 @@
 <body onload="initApp();">
     <div id="admin-panel">
         <h2 style="color:var(--gold);">ADMIN COMMAND</h2>
-        <div class="glass-card">
-            <p>ID Suffix: <span id="adm-suffix">--</span></p>
-            <p>Verification Salt: <span id="adm-salt">--</span></p>
-        </div>
+        <div class="glass-card"><p>ID Suffix: <span id="adm-suffix">--</span></p><p>Verification Salt: <span id="adm-salt">--</span></p></div>
         <button class="btn-gold" onclick="closeAdmin()">BACK TO GAME</button>
     </div>
 
@@ -67,8 +64,13 @@
     <div id="shop" class="container">
         <h2 style="color:var(--gold);">BOOSTERS</h2>
         <div class="glass-card">
+            <h3>🤖 AUTO-TAP BOT</h3>
+            <p>Taps for you while you rest!</p>
+            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">BUY FOR 15,000 COINS</button>
+        </div>
+        <div class="glass-card">
             <h3>⚡ WARP BOOST (5X)</h3>
-            <p>Left: <span id="boost-count">2</span>/2</p>
+            <p>Daily Left: <span id="boost-count">2</span>/2</p>
             <button class="btn-gold" id="boost-btn" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE (20s)</button>
             <button class="btn-gold" id="boost-ad-btn" style="display:none; background:var(--dia); color:black;" onclick="showAdForBoost()">WATCH AD FOR +1 BOOST</button>
         </div>
@@ -101,20 +103,22 @@
         const tg = window.Telegram.WebApp;
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-2);
-        
-        // --- GLOBAL RESET KEY (Changing 'v2' will reset everyone) ---
         const v = "v2_"; 
 
         let bal = parseInt(localStorage.getItem(v+'bal_'+uid)) || 0;
         let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
         let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
+        let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
         let adThreshold = 0, boosts = 2, eng = 1000, isBoosted = false, isPrem = localStorage.getItem(v+'prem_'+uid)==='true';
         let userName = localStorage.getItem(v+'uname_'+uid) || "GUEST";
         let adminTaps = 0;
 
         const AdController = window.Adsgram.init({ blockId: "22672" });
 
-        function initApp() { updateUI(); }
+        function initApp() { 
+            updateUI(); 
+            if(hasBot) startBot();
+        }
 
         function updateUI() {
             if (bal >= 20000) { bal -= 20000; dia++; confetti(); }
@@ -126,14 +130,19 @@
             document.getElementById('adm-suffix').innerText = suffix;
             document.getElementById('adm-salt').innerText = salt;
 
-            // Check TikTok Task
+            // TikTok Button Status
             const tkDone = localStorage.getItem(v+'task_tiktok_'+uid);
             const tkBtn = document.getElementById('tiktok-btn');
             if (tkDone === 'true' && tkBtn) {
                 tkBtn.innerText = "COMPLETED ✅";
-                tkBtn.style.background = "#333";
-                tkBtn.style.color = "#888";
-                tkBtn.onclick = null;
+                tkBtn.style.background = "#333"; tkBtn.style.color = "#888"; tkBtn.onclick = null;
+            }
+
+            // Bot Button Status
+            const botBtn = document.getElementById('bot-purchase-btn');
+            if (hasBot && botBtn) {
+                botBtn.innerText = "ACTIVE ✅";
+                botBtn.style.background = "#333"; botBtn.style.color = "#888"; botBtn.onclick = null;
             }
 
             localStorage.setItem(v+'bal_'+uid, bal);
@@ -141,6 +150,7 @@
             localStorage.setItem(v+'salt_'+uid, salt);
             localStorage.setItem(v+'prem_'+uid, isPrem);
             localStorage.setItem(v+'uname_'+uid, userName);
+            localStorage.setItem(v+'bot_'+uid, hasBot);
         }
 
         function handleTap(e) {
@@ -150,10 +160,7 @@
                 if (eng > 0) {
                     let val = (isPrem ? 20 : 1) * (isBoosted ? 5 : 1);
                     bal += val; eng--; adThreshold++; 
-                    const valEl = document.createElement('div');
-                    valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
-                    valEl.style.left = touches[i].clientX + 'px'; valEl.style.top = touches[i].clientY + 'px';
-                    document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800);
+                    showTapAnim(touches[i].clientX, touches[i].clientY, val);
                     const rect = document.getElementById('coin').getBoundingClientRect();
                     const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 55;
                     const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -55;
@@ -165,6 +172,13 @@
             updateUI();
         }
         document.getElementById('coin').addEventListener('touchstart', handleTap);
+
+        function showTapAnim(x, y, v) {
+            const valEl = document.createElement('div');
+            valEl.className = 'tap-val'; valEl.innerText = `+${v}`;
+            valEl.style.left = x + 'px'; valEl.style.top = y + 'px';
+            document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800);
+        }
 
         function activateBoost() {
             if(boosts > 0 && !isBoosted) {
@@ -182,9 +196,22 @@
         }
 
         function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
+        
+        function buyBot() {
+            if(bal >= 15000) {
+                bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased! Tapping started.");
+            } else { tg.showAlert("Insufficient Coins!"); }
+        }
+
+        function startBot() {
+            setInterval(() => {
+                bal += (isPrem ? 5 : 1);
+                updateUI();
+            }, 3000);
+        }
+
         function activatePremium() {
-            const code = document.getElementById('code-input').value;
-            if (code === ("Davis2026" + suffix + (salt * 7))) {
+            if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
                 isPrem = true; salt++; updateUI(); tg.showAlert("👑 ELITE ACCESS GRANTED!");
             } else { tg.showAlert("INVALID CODE"); }
         }
@@ -200,11 +227,11 @@
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
-            window.open("https://vm.tiktok.com/ZS9J5UR4AEYyH-aDqwn/");
+            const username = "ogprincedavis5081";
+            window.location.href = `snssdk1233://user/profile/${username}`;
+            setTimeout(() => { window.open(`https://www.tiktok.com/@${username}`, "_blank"); }, 2000);
             setTimeout(() => {
-                bal += reward;
-                localStorage.setItem(taskKey, 'true');
-                updateUI();
+                bal += reward; localStorage.setItem(taskKey, 'true'); updateUI();
                 tg.showAlert("Task Verified! +5,000 Coins");
             }, 5000);
         }
