@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v56.2</title>
+    <title>Crypto Tap Master v56.3</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -42,6 +42,7 @@
     <div id="home" class="container active">
         <div id="balance" onclick="adminTrigger()" style="font-size: 55px; font-weight: 900; color: var(--gold); cursor:pointer;">0</div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        <div style="font-size: 10px; color: #666;">(50,000 Coins = 1 Diamond = ₦100)</div>
         <div class="coin-wrapper"><div class="coin-btn skin-gold" id="coin">P</div></div>
         <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
         <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
@@ -112,7 +113,8 @@
         function initApp() { updateUI(); if(hasBot) startBot(); }
 
         function updateUI() {
-            if (bal >= 20000) { bal -= 20000; dia++; confetti(); }
+            // ECONOMY UPDATE: 50,000 Coins = 1 Diamond
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('boost-count').innerText = boosts;
@@ -157,7 +159,6 @@
                     const rect = document.getElementById('coin').getBoundingClientRect();
                     const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 55;
                     const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -55;
-                    // TILT ONLY - NO SHRINK
                     document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
                     setTimeout(() => document.getElementById('coin').style.transform = "rotate(0)", 100);
                     
@@ -207,10 +208,7 @@
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
-            
-            // REVERTED: Back to simple web link for stability
             window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
-
             setTimeout(() => {
                 bal += reward; localStorage.setItem(taskKey, 'true'); updateUI();
                 tg.showAlert("Task Verified! +5,000 Coins");
