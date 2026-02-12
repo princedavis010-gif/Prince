@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v58.7</title>
+    <title>Crypto_Tap v59.2</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -41,6 +41,7 @@
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
         #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
         #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
+        .tx-list { text-align: left; font-size: 12px; margin-top: 10px; color: #aaa; }
     </style>
 </head>
 <body onload="initApp();">
@@ -64,6 +65,13 @@
 
     <div id="tasks" class="container">
         <h2 style="color:var(--gold);">TASKS</h2>
+        
+        <div class="glass-card" style="border: 1px solid var(--purple);">
+            <h3 style="color:var(--purple); margin:0;">👥 INVITE FRIENDS</h3>
+            <p>Get 10,000 Coins for every friend who joins!</p>
+            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="shareInvite()">INVITE A FRIEND</button>
+        </div>
+
         <div class="glass-card">
             <p>Follow @ogprincedavis5081 on TikTok. Like & Comment on all videos.</p>
             <button id="tiktok-btn" class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">LIKE AND COMMENT (+5,000)</button>
@@ -95,7 +103,11 @@
             <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
             <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
         </div>
-        <button class="btn-gold" style="background:var(--dia); color:#000;" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
+        <button class="btn-gold" style="background:var(--dia); color:#000;" id="redeem-btn" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
+        <div class="glass-card" style="margin-top:20px;">
+            <h4>📜 RECENT ACTIVITY</h4>
+            <div id="tx-history" class="tx-list">No recent requests.</div>
+        </div>
     </div>
 
     <div class="nav">
@@ -117,7 +129,18 @@
         let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
         let premExpiry = parseInt(localStorage.getItem(v+'premExp_'+uid)) || 0;
         let lastVisit = parseInt(localStorage.getItem(v+'lastVis_'+uid)) || Date.now();
-        let adThreshold = 0; let boosts = 2; let eng = 1000; let isBoosted = false;
+        let txs = JSON.parse(localStorage.getItem(v+'txs_'+uid)) || [];
+        
+        let boosts = parseInt(localStorage.getItem(v+'boosts_'+uid));
+        if (isNaN(boosts)) boosts = 2;
+        let lastReset = parseInt(localStorage.getItem(v+'lastReset_'+uid)) || 0;
+        if (Date.now() - lastReset > 86400000) {
+            boosts = 2;
+            localStorage.setItem(v+'lastReset_'+uid, Date.now());
+            localStorage.setItem(v+'boosts_'+uid, boosts);
+        }
+
+        let adThreshold = 0; let eng = 1000; let isBoosted = false;
         const AdController = window.Adsgram.init({ blockId: "22672" });
 
         function initApp() { 
@@ -127,6 +150,128 @@
                 if (document.visibilityState === 'visible') checkAwayEarnings();
                 else localStorage.setItem(v+'lastVis_'+uid, Date.now());
             });
+        }
+
+        function handleTap(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                if(eng > 0) {
+                   let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
+                   bal += val; 
+                   if (!isBoosted) adThreshold += val; 
+                   eng--;
+                
+                   const valEl = document.createElement('div');
+                   valEl.className = 'tap-val';
+                   valEl.innerText = `+${val}`;
+                   valEl.style.left = touches[i].clientX + 'px';
+                   valEl.style.top = touches[i].clientY + 'px';
+                   document.body.appendChild(valEl);
+                   setTimeout(() => valEl.remove(), 800);
+
+                   const rect = document.getElementById('coin').getBoundingClientRect();
+                   const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
+                   const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
+                   document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+                   setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
+                
+                   if(adThreshold >= 5000) { 
+                       adThreshold = 0; 
+                       AdController.show().then(() => { 
+                           bal += 500; updateUI(); 
+                           tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); 
+                       }); 
+                   }
+                }
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
+            document.getElementById('balance').innerText = bal.toLocaleString();
+            document.getElementById('diamonds').innerText = dia;
+            document.getElementById('p-suffix').innerText = suffix;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('boost-count').innerText = boosts;
+
+            const botBtn = document.getElementById('bot-purchase-btn');
+            if(hasBot) {
+                botBtn.innerText = "ACTIVE";
+                botBtn.className = "btn-gold btn-active";
+                botBtn.disabled = true;
+            }
+
+            const hEl = document.getElementById('tx-history');
+            if (txs.length > 0) {
+                hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
+            }
+
+            localStorage.setItem(v+'bal_'+uid, bal);
+            localStorage.setItem(v+'dia_'+uid, dia);
+            localStorage.setItem(v+'bot_'+uid, hasBot);
+            localStorage.setItem(v+'boosts_'+uid, boosts);
+            localStorage.setItem(v+'txs_'+uid, JSON.stringify(txs));
+        }
+
+        async function requestRedeem() {
+            if (dia >= 1) {
+                const btn = document.getElementById('redeem-btn');
+                btn.innerText = "PROCESSING..."; btn.disabled = true;
+                const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI"; 
+                const chatId = "-1003843441800"; 
+                const message = `🚨 NEW REDEEM REQUEST\n👤 User ID: ${suffix}\n💎 Amount: 1 Diamond (₦100 AIRTIME)`;
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: message })
+                    });
+                    if (response.ok) { 
+                        dia--; 
+                        txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Request Sent" });
+                        if (txs.length > 5) txs.pop();
+                        updateUI();
+                        tg.showAlert("Request Sent!"); 
+                    } else { tg.showAlert("Request failed. Check internet."); }
+                } catch (error) { tg.showAlert("Error sending request."); }
+                finally { btn.innerText = "REDEEM DIAMOND FOR ₦100 AIRTIME"; btn.disabled = false; }
+            } else { tg.showAlert("Not enough Diamonds."); }
+        }
+
+        function activateBoost() {
+            if (boosts > 0 && !isBoosted) {
+                boosts--; isBoosted = true; updateUI();
+                showTab('home', document.querySelectorAll('.nav-item')[0]);
+                tg.showAlert("Warp Speed Activated! Good job!");
+                setTimeout(() => { isBoosted = false; updateUI(); }, 20000);
+            }
+        }
+
+        function showDoubleAd() {
+            AdController.show().then(() => {
+                let wait = 7; document.getElementById('ad-countdown').style.display = 'block';
+                const t = setInterval(() => {
+                    wait--; document.getElementById('ad-timer-val').innerText = wait;
+                    if(wait <= 0) {
+                        clearInterval(t); document.getElementById('ad-countdown').style.display = 'none';
+                        AdController.show().then(() => { 
+                            bal += 3000; updateUI(); 
+                            tg.showAlert("Congratulations! +3,000 rewarded. Good job!"); 
+                        });
+                        document.getElementById('ad-timer-val').innerText = "7";
+                    }
+                }, 1000);
+            });
+        }
+
+        function shareInvite() {
+            const botUsername = "Crypto_Tap_Bot"; 
+            const inviteLink = `https://t.me/${botUsername}?startapp=${uid}`;
+            const shareText = "Hey! Join me on Crypto_Tap and let's earn together! 🪙💎";
+            const url = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}`;
+            tg.openTelegramLink(url);
+            tg.showAlert("Invite link ready!");
         }
 
         function checkAwayEarnings() {
@@ -144,79 +289,13 @@
             localStorage.setItem(v+'lastVis_'+uid, Date.now());
         }
 
-        function handleTap(e) {
-            e.preventDefault();
-            const touches = e.changedTouches;
-            for (let i = 0; i < touches.length; i++) {
-                if(eng > 0) {
-                   let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
-                   bal += val; 
-                   if (!isBoosted) adThreshold += val; // Only count ads if NOT boosted
-                   eng--;
-                
-                   const valEl = document.createElement('div');
-                   valEl.className = 'tap-val';
-                   valEl.innerText = `+${val}`;
-                   valEl.style.left = touches[i].clientX + 'px';
-                   valEl.style.top = touches[i].clientY + 'px';
-                   document.body.appendChild(valEl);
-                   setTimeout(() => valEl.remove(), 800);
-
-                   const rect = document.getElementById('coin').getBoundingClientRect();
-                   const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
-                   const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
-                   document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-                   setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
-                
-                   // UPDATED: 5000 Tap Ad Threshold
-                   if(adThreshold >= 5000) { 
-                       adThreshold = 0; 
-                       AdController.show().then(() => { 
-                           bal += 500; updateUI(); 
-                           tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); 
-                       }); 
-                   }
-                }
-            }
-            updateUI();
-        }
-
-        function showDoubleAd() {
-            AdController.show().then(() => {
-                let wait = 7; // RESTORED 7s cooldown
-                document.getElementById('ad-countdown').style.display = 'block';
-                const t = setInterval(() => {
-                    wait--; document.getElementById('ad-timer-val').innerText = wait;
-                    if(wait <= 0) {
-                        clearInterval(t); document.getElementById('ad-countdown').style.display = 'none';
-                        AdController.show().then(() => {
-                            bal += 3000; updateUI();
-                            tg.showAlert("Congratulations, you have been rewarded 3000 coins 🤑🎉. Good job!");
-                        });
-                        document.getElementById('ad-timer-val').innerText = "7";
-                    }
-                }, 1000);
-            });
-        }
-
-        function updateUI() {
-            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
-            document.getElementById('balance').innerText = bal.toLocaleString();
-            document.getElementById('diamonds').innerText = dia;
-            document.getElementById('p-suffix').innerText = suffix;
-            document.getElementById('energy').innerText = eng;
-            document.getElementById('boost-count').innerText = boosts;
-
-            const botBtn = document.getElementById('bot-purchase-btn');
-            if(hasBot) {
-                botBtn.innerText = "ACTIVE";
-                botBtn.className = "btn-gold btn-active"; // Greys out button
-                botBtn.disabled = true;
-            }
-
-            localStorage.setItem(v+'bal_'+uid, bal);
-            localStorage.setItem(v+'dia_'+uid, dia);
-            localStorage.setItem(v+'bot_'+uid, hasBot);
+        function checkPremiumExpiry() {
+            const timerEl = document.getElementById('prem-timer');
+            if(premExpiry > Date.now()) {
+                const diff = premExpiry - Date.now();
+                const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+                timerEl.innerText = `PREMIUM ACTIVE: ${hours}h remaining`;
+            } else { timerEl.innerText = ""; }
         }
 
         function activatePremium() {
@@ -225,34 +304,10 @@
             } else { tg.showAlert("INVALID CODE."); }
         }
 
-        async function requestRedeem() {
-            if (dia >= 1) {
-                dia--; updateUI();
-                const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI"; 
-                const chatId = "-1003843441800"; 
-                const message = `🚨 NEW REDEEM REQUEST\n👤 User ID: ${suffix}\n💎 Amount: 1 Diamond (₦100 AIRTIME)`;
-                try {
-                    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: message })
-                    });
-                    if (response.ok) { tg.showAlert("Request Sent! Good job!"); }
-                    else { tg.showAlert("Request failed. Please check your internet."); }
-                } catch (error) { tg.showAlert("Error sending request."); }
-            } else { tg.showAlert("Not enough Diamonds."); }
-        }
-
-        function activateBoost() {
-            if (boosts > 0 && !isBoosted) {
-                boosts--; isBoosted = true;
-                showTab('home', document.querySelectorAll('.nav-item')[0]);
-                tg.showAlert("Warp Speed Activated! Good job!");
-                setTimeout(() => { isBoosted = false; updateUI(); }, 20000);
-            }
-        }
-
+        function doTask(t, reward) { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); setTimeout(() => { bal += reward; updateUI(); tg.showAlert("Task Verified! Good job!"); }, 5000); }
         function buyBot() { if(!hasBot && bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased! Good job!"); } }
         function startBot() { if(hasBot) { setInterval(() => { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); }, 3000); } }
+        function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
         function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
         document.getElementById('coin').addEventListener('touchstart', handleTap);
