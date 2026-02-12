@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v56.3</title>
+    <title>Crypto Tap Master v57.0</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -18,8 +18,24 @@
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .coin-btn { width: 310px; height: 310px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 150px; font-weight: 900; transition: 0.1s; transform-style: preserve-3d; cursor: pointer; }
-        .skin-gold { background: radial-gradient(circle, #ffe08a, #f3ba2f, #8e6d1a); border: 12px solid #3d2f07; color: #3d2f07; box-shadow: 0 15px 45px rgba(243,186,47,0.4); }
+
+        /* 3D COIN ENHANCEMENT */
+        .coin-wrapper { perspective: 1000px; margin: 30px 0; }
+        .coin-btn { 
+            width: 310px; height: 310px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 150px; font-weight: 900; transition: transform 0.1s ease-out; 
+            transform-style: preserve-3d; cursor: pointer;
+            background: radial-gradient(circle at 30% 30%, #ffe08a, #f3ba2f, #8e6d1a);
+            border: 12px solid #3d2f07; color: #3d2f07;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.3);
+        }
+        .coin-btn::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 5px solid rgba(0,0,0,0.2);
+            transform: translateZ(-10px); background: #8e6d1a;
+        }
+
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
@@ -27,10 +43,19 @@
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
+        
+        /* BOT POPUP STYLE */
+        #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; padding: 30px; }
     </style>
 </head>
 <body onload="initApp();">
+    <div id="bot-modal">
+        <h2 style="color:var(--gold); margin:0;">🤖 BOT EARNINGS</h2>
+        <p id="bot-earned-msg" style="font-size:18px; margin:15px 0;"></p>
+        <button class="btn-gold" onclick="closeBotModal()">THANK YOU</button>
+    </div>
+
     <div id="admin-panel">
         <h2 style="color:var(--gold);">ADMIN COMMAND</h2>
         <div class="glass-card"><p>ID Suffix: <span id="adm-suffix">--</span></p><p>Verification Salt: <span id="adm-salt">--</span></p></div>
@@ -42,11 +67,11 @@
     <div id="home" class="container active">
         <div id="balance" onclick="adminTrigger()" style="font-size: 55px; font-weight: 900; color: var(--gold); cursor:pointer;">0</div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
-        <div style="font-size: 10px; color: #666;">(50,000 Coins = 1 Diamond = ₦100)</div>
-        <div class="coin-wrapper"><div class="coin-btn skin-gold" id="coin">P</div></div>
+        <div id="prem-timer" style="color:var(--green); font-weight:bold; font-size:12px; height:15px;"></div>
+        <div class="coin-wrapper"><div class="coin-btn" id="coin">P</div></div>
         <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
         <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showAd()">📺 WATCH AD (+2,000)</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 WATCH ADS (+4,000)</button>
     </div>
 
     <div id="tasks" class="container">
@@ -72,17 +97,16 @@
     </div>
 
     <div id="premium" class="container">
-        <h2 style="color:var(--gold);">ELITE SHOP</h2>
+        <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
         <div class="glass-card">
             <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
-            <p>Premium (20x Tap): ₦200</p>
-            <p>OPay: <b>8124647818</b></p>
-            <button class="btn-gold" onclick="openWA('Proof of Payment')">SEND PROOF</button>
+            <p>Premium Subscription (20x Tap)</p>
+            <p>Price: ₦200 | OPay: <b>8124647818</b></p>
+            <button class="btn-gold" onclick="openWA('Proof for Premium')">SEND PROOF</button>
         </div>
         <div class="glass-card">
-            <input type="text" id="uname-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="USERNAME">
-            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="CODE">
-            <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE</button>
+            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
+            <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
         </div>
         <button class="btn-gold" style="background:var(--dia); color:#000;" onclick="requestRedeem()">REDEEM DIAMOND (₦100)</button>
     </div>
@@ -104,16 +128,50 @@
         let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
         let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
         let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
-        let adThreshold = 0, boosts = 2, eng = 1000, isBoosted = false, isPrem = localStorage.getItem(v+'prem_'+uid)==='true';
-        let userName = localStorage.getItem(v+'uname_'+uid) || "GUEST";
-        let adminTaps = 0;
-
+        let premExpiry = parseInt(localStorage.getItem(v+'premExp_'+uid)) || 0;
+        let lastVisit = parseInt(localStorage.getItem(v+'lastVis_'+uid)) || Date.now();
+        
+        let adThreshold = 0, boosts = 2, eng = 1000, isBoosted = false, adminTaps = 0;
         const AdController = window.Adsgram.init({ blockId: "22672" });
 
-        function initApp() { updateUI(); if(hasBot) startBot(); }
+        function initApp() { 
+            checkAwayEarnings();
+            updateUI(); 
+            if(hasBot) startBot();
+            setInterval(checkPremiumExpiry, 1000);
+        }
+
+        function checkAwayEarnings() {
+            if(hasBot) {
+                const now = Date.now();
+                const diff = Math.floor((now - lastVisit) / 1000); // seconds
+                if(diff > 60) {
+                    const awayCoins = Math.min(diff / 3, 5000) * (isPrem() ? 5 : 1);
+                    if(awayCoins > 10) {
+                        bal += Math.floor(awayCoins);
+                        document.getElementById('bot-earned-msg').innerText = `Your bot earned ${Math.floor(awayCoins).toLocaleString()} coins while you were away!`;
+                        document.getElementById('bot-modal').style.display = 'block';
+                    }
+                }
+            }
+            localStorage.setItem(v+'lastVis_'+uid, Date.now());
+        }
+
+        function isPrem() { return premExpiry > Date.now(); }
+
+        function checkPremiumExpiry() {
+            const timerEl = document.getElementById('prem-timer');
+            if(isPrem()) {
+                const diff = premExpiry - Date.now();
+                const days = Math.floor(diff / (1000*60*60*24));
+                const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+                const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+                const secs = Math.floor((diff % (1000*60)) / 1000);
+                timerEl.innerText = `PREMIUM: ${days}d ${hours}h ${mins}m ${secs}s`;
+            } else { timerEl.innerText = ""; }
+        }
 
         function updateUI() {
-            // ECONOMY UPDATE: 50,000 Coins = 1 Diamond
             if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
@@ -139,9 +197,9 @@
             localStorage.setItem(v+'bal_'+uid, bal);
             localStorage.setItem(v+'dia_'+uid, dia);
             localStorage.setItem(v+'salt_'+uid, salt);
-            localStorage.setItem(v+'prem_'+uid, isPrem);
-            localStorage.setItem(v+'uname_'+uid, userName);
+            localStorage.setItem(v+'premExp_'+uid, premExpiry);
             localStorage.setItem(v+'bot_'+uid, hasBot);
+            localStorage.setItem(v+'lastVis_'+uid, Date.now());
         }
 
         function handleTap(e) {
@@ -149,18 +207,19 @@
             const touches = e.changedTouches;
             for (let i = 0; i < touches.length; i++) {
                 if (eng > 0) {
-                    let val = (isPrem ? 20 : 1) * (isBoosted ? 5 : 1);
-                    bal += val; eng--; adThreshold++; 
+                    let val = (isPrem() ? 20 : 1) * (isBoosted ? 5 : 1);
+                    bal += val; eng--; adThreshold += val; // Fixed threshold tracker
+                    
                     const valEl = document.createElement('div');
                     valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
                     valEl.style.left = touches[i].clientX + 'px'; valEl.style.top = touches[i].clientY + 'px';
                     document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800);
                     
                     const rect = document.getElementById('coin').getBoundingClientRect();
-                    const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 55;
-                    const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -55;
+                    const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 65;
+                    const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -65;
                     document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
-                    setTimeout(() => document.getElementById('coin').style.transform = "rotate(0)", 100);
+                    setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0) rotateX(0)", 150);
                     
                     if(adThreshold >= 3000) { adThreshold = 0; showAd(); }
                 }
@@ -171,52 +230,46 @@
 
         function activateBoost() {
             if(boosts > 0 && !isBoosted) {
+                showTab('home', document.querySelectorAll('.nav-item')[0]); // Teleport back
                 boosts--; isBoosted = true; document.body.classList.add('boost-active');
                 let sec = 20;
                 const t = setInterval(() => {
                     sec--; document.getElementById('boost-timer').innerText = `WARP ACTIVE: ${sec}s`;
-                    if(sec <= 0) { 
-                        clearInterval(t); isBoosted = false; document.body.classList.remove('boost-active');
-                        document.getElementById('boost-timer').innerText = ""; 
-                        document.getElementById('boost-ad-btn').style.display = "block"; updateUI(); 
-                    }
+                    if(sec <= 0) { clearInterval(t); isBoosted = false; document.body.classList.remove('boost-active'); document.getElementById('boost-timer').innerText = ""; document.getElementById('boost-ad-btn').style.display = "block"; updateUI(); }
                 }, 1000);
             }
         }
 
-        function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
-        function buyBot() {
-            if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased!"); }
-            else { tg.showAlert("Insufficient Coins!"); }
+        function showDoubleAd() {
+            AdController.show().then(() => {
+                AdController.show().then(() => {
+                    bal += 4000; updateUI(); tg.showAlert("Double Impression Success! +4,000 Coins");
+                });
+            });
         }
-        function startBot() { setInterval(() => { bal += (isPrem ? 5 : 1); updateUI(); }, 3000); }
+
+        function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
+        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased!"); } else { tg.showAlert("Insufficient!"); } }
+        function startBot() { setInterval(() => { bal += (isPrem() ? 5 : 1); updateUI(); }, 3000); }
 
         function activatePremium() {
             if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
-                isPrem = true; salt++; updateUI(); tg.showAlert("👑 ELITE ACCESS!");
+                premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); // 3 Days from now
+                salt++; updateUI(); tg.showAlert("Premium Activated for 3 Days!");
             } else { tg.showAlert("INVALID CODE"); }
-        }
-
-        function requestRedeem() { 
-            if(dia >= 1) { 
-                dia--; updateUI(); 
-                const secureId = `CPT-${suffix}-${Date.now().toString(36).toUpperCase()}`;
-                openWA(`REDEEM-₦100 | ID: ${suffix} | User: ${userName} | TXN: ${secureId} | Salt: ${salt}`); 
-            } 
         }
 
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
             window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
-            setTimeout(() => {
-                bal += reward; localStorage.setItem(taskKey, 'true'); updateUI();
-                tg.showAlert("Task Verified! +5,000 Coins");
-            }, 5000);
+            setTimeout(() => { bal += reward; localStorage.setItem(taskKey, 'true'); updateUI(); tg.showAlert("Task Verified!"); }, 5000);
         }
 
+        function requestRedeem() { if(dia >= 1) { dia--; updateUI(); openWA(`REDEEM-₦100 | ID: ${suffix} | TXN: CPT-${suffix}-${Date.now().toString(36).toUpperCase()}`); } }
         function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
         function showAd() { AdController.show().then(() => { bal += 2000; updateUI(); }); }
+        function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
         function adminTrigger() { adminTaps++; if (adminTaps >= 5) { if(prompt("Pass:")==="Davis2026") document.getElementById('admin-panel').style.display='block'; adminTaps=0; } }
         function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
