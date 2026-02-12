@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v58.3</title>
+    <title>Crypto_Tap v58.5</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -85,7 +85,7 @@
     </div>
 
     <div id="premium" class="container">
-        <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
+        <h2 style="color:var(--gold);">Elite Shop</h2>
         <div class="glass-card">
             <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
             <p>Premium Subscription (20x Tap)</p>
@@ -102,7 +102,7 @@
     <div class="nav">
         <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
         <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
-        <div class="nav-item" onclick="shopTab('shop', this)">⚡<br>Boost</div>
+        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Boost</div>
         <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
     </div>
 
@@ -118,7 +118,7 @@
         let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
         let premExpiry = parseInt(localStorage.getItem(v+'premExp_'+uid)) || 0;
         let lastVisit = parseInt(localStorage.getItem(v+'lastVis_'+uid)) || Date.now();
-        let adThreshold = 0;
+        let adThreshold = 0; let boosts = 2; let eng = 1000; let isBoosted = false;
         const AdController = window.Adsgram.init({ blockId: "22672" });
 
         function initApp() { 
@@ -149,29 +149,31 @@
             e.preventDefault();
             const touches = e.changedTouches;
             for (let i = 0; i < touches.length; i++) {
-                let val = (premExpiry > Date.now() ? 20 : 1);
-                bal += val; adThreshold += val;
+                if(eng > 0) {
+                   let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
+                   bal += val; adThreshold += val; eng--;
                 
-                const valEl = document.createElement('div');
-                valEl.className = 'tap-val';
-                valEl.innerText = `+${val}`;
-                valEl.style.left = touches[i].clientX + 'px';
-                valEl.style.top = touches[i].clientY + 'px';
-                document.body.appendChild(valEl);
-                setTimeout(() => valEl.remove(), 800);
+                   const valEl = document.createElement('div');
+                   valEl.className = 'tap-val';
+                   valEl.innerText = `+${val}`;
+                   valEl.style.left = touches[i].clientX + 'px';
+                   valEl.style.top = touches[i].clientY + 'px';
+                   document.body.appendChild(valEl);
+                   setTimeout(() => valEl.remove(), 800);
 
-                const rect = document.getElementById('coin').getBoundingClientRect();
-                const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
-                const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
-                document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-                setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
+                   const rect = document.getElementById('coin').getBoundingClientRect();
+                   const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
+                   const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
+                   document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+                   setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
                 
-                if(adThreshold >= 3000) { 
-                    adThreshold = 0; 
-                    AdController.show().then(() => { 
-                        bal += 500; updateUI(); 
-                        tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); 
-                    }); 
+                   if(adThreshold >= 3000) { 
+                       adThreshold = 0; 
+                       AdController.show().then(() => { 
+                           bal += 500; updateUI(); 
+                           tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); 
+                       }); 
+                   }
                 }
             }
             updateUI();
@@ -198,6 +200,16 @@
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('p-suffix').innerText = suffix;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('boost-count').innerText = boosts;
+
+            const botBtn = document.getElementById('bot-purchase-btn');
+            if(hasBot) {
+                botBtn.innerText = "ACTIVE";
+                botBtn.style.background = "var(--green)";
+                botBtn.disabled = true;
+            }
+
             localStorage.setItem(v+'bal_'+uid, bal);
             localStorage.setItem(v+'dia_'+uid, dia);
             localStorage.setItem(v+'premExp_'+uid, premExpiry);
@@ -224,7 +236,7 @@
             if (dia >= 1) {
                 dia--;
                 updateUI();
-                const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI"; // Put your token from BotFather here
+                const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI"; 
                 const chatId = "-1003843441800"; 
                 const message = `🚨 NEW REDEEM REQUEST\n👤 User ID: ${suffix}\n💎 Amount: 1 Diamond (₦100 AIRTIME)`;
 
@@ -234,16 +246,24 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ chat_id: chatId, text: message })
                     });
-
                     if (response.ok) { tg.showAlert("Request Sent! Good job!"); }
                     else { tg.showAlert("Request failed. Please check your internet."); }
                 } catch (error) { tg.showAlert("Error sending request."); }
             } else { tg.showAlert("Not enough Diamonds."); }
         }
 
+        function activateBoost() {
+            if (boosts > 0 && !isBoosted) {
+                boosts--; isBoosted = true;
+                showTab('home', document.querySelectorAll('.nav-item')[0]);
+                tg.showAlert("Warp Speed Activated! Good job!");
+                setTimeout(() => { isBoosted = false; updateUI(); }, 20000);
+            }
+        }
+
         function doTask(t, reward) { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); setTimeout(() => { bal += reward; updateUI(); tg.showAlert("Task Verified! Good job!"); }, 5000); }
-        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); tg.showAlert("Bot Purchased! Good job!"); } }
-        function startBot() { setInterval(() => { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); }, 3000); }
+        function buyBot() { if(!hasBot && bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased! Good job!"); } }
+        function startBot() { if(hasBot) { setInterval(() => { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); }, 3000); } }
         function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
         function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
