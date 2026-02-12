@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v57.0</title>
+    <title>Crypto Tap Master v57.2</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -18,24 +18,8 @@
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* 3D COIN ENHANCEMENT */
         .coin-wrapper { perspective: 1000px; margin: 30px 0; }
-        .coin-btn { 
-            width: 310px; height: 310px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 150px; font-weight: 900; transition: transform 0.1s ease-out; 
-            transform-style: preserve-3d; cursor: pointer;
-            background: radial-gradient(circle at 30% 30%, #ffe08a, #f3ba2f, #8e6d1a);
-            border: 12px solid #3d2f07; color: #3d2f07;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.3);
-        }
-        .coin-btn::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 5px solid rgba(0,0,0,0.2);
-            transform: translateZ(-10px); background: #8e6d1a;
-        }
-
+        .coin-btn { width: 310px; height: 310px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 150px; font-weight: 900; transition: transform 0.1s ease-out; transform-style: preserve-3d; cursor: pointer; background: radial-gradient(circle at 30% 30%, #ffe08a, #f3ba2f, #8e6d1a); border: 12px solid #3d2f07; color: #3d2f07; box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.3); }
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
@@ -43,8 +27,6 @@
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
-        
-        /* BOT POPUP STYLE */
         #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; padding: 30px; }
     </style>
@@ -71,7 +53,7 @@
         <div class="coin-wrapper"><div class="coin-btn" id="coin">P</div></div>
         <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
         <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 WATCH ADS (+4,000)</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 WATCH ADS (+3,000)</button>
     </div>
 
     <div id="tasks" class="container">
@@ -139,17 +121,21 @@
             updateUI(); 
             if(hasBot) startBot();
             setInterval(checkPremiumExpiry, 1000);
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === 'visible') checkAwayEarnings();
+                else localStorage.setItem(v+'lastVis_'+uid, Date.now());
+            });
         }
 
         function checkAwayEarnings() {
             if(hasBot) {
                 const now = Date.now();
-                const diff = Math.floor((now - lastVisit) / 1000); // seconds
-                if(diff > 60) {
+                const diff = Math.floor((now - lastVisit) / 1000); 
+                if(diff > 10) {
                     const awayCoins = Math.min(diff / 3, 5000) * (isPrem() ? 5 : 1);
-                    if(awayCoins > 10) {
+                    if(awayCoins > 1) {
                         bal += Math.floor(awayCoins);
-                        document.getElementById('bot-earned-msg').innerText = `Your bot earned ${Math.floor(awayCoins).toLocaleString()} coins while you were away!`;
+                        document.getElementById('bot-earned-msg').innerText = `Bot earned ${Math.floor(awayCoins).toLocaleString()} coins! Thank you.`;
                         document.getElementById('bot-modal').style.display = 'block';
                     }
                 }
@@ -182,16 +168,14 @@
             document.getElementById('adm-salt').innerText = salt;
 
             const tkDone = localStorage.getItem(v+'task_tiktok_'+uid);
-            const tkBtn = document.getElementById('tiktok-btn');
-            if (tkDone === 'true' && tkBtn) {
-                tkBtn.innerText = "COMPLETED ✅";
-                tkBtn.style.background = "#333"; tkBtn.style.color = "#888"; tkBtn.onclick = null;
+            if (tkDone === 'true' && document.getElementById('tiktok-btn')) {
+                const tkBtn = document.getElementById('tiktok-btn');
+                tkBtn.innerText = "COMPLETED ✅"; tkBtn.style.background = "#333"; tkBtn.style.color = "#888"; tkBtn.onclick = null;
             }
 
-            const botBtn = document.getElementById('bot-purchase-btn');
-            if (hasBot && botBtn) {
-                botBtn.innerText = "ACTIVE ✅";
-                botBtn.style.background = "#333"; botBtn.style.color = "#888"; botBtn.onclick = null;
+            if (hasBot && document.getElementById('bot-purchase-btn')) {
+                const botBtn = document.getElementById('bot-purchase-btn');
+                botBtn.innerText = "ACTIVE ✅"; botBtn.style.background = "#333"; botBtn.style.color = "#888"; botBtn.onclick = null;
             }
 
             localStorage.setItem(v+'bal_'+uid, bal);
@@ -208,7 +192,7 @@
             for (let i = 0; i < touches.length; i++) {
                 if (eng > 0) {
                     let val = (isPrem() ? 20 : 1) * (isBoosted ? 5 : 1);
-                    bal += val; eng--; adThreshold += val; // Fixed threshold tracker
+                    bal += val; eng--; adThreshold += val; 
                     
                     const valEl = document.createElement('div');
                     valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
@@ -221,16 +205,29 @@
                     document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
                     setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0) rotateX(0)", 150);
                     
-                    if(adThreshold >= 3000) { adThreshold = 0; showAd(); }
+                    if(adThreshold >= 3000) { 
+                        adThreshold = 0; 
+                        AdController.show().then(() => {
+                            bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins Bonus added. Thank you.");
+                        });
+                    }
                 }
             }
             updateUI();
         }
         document.getElementById('coin').addEventListener('touchstart', handleTap);
 
+        function showDoubleAd() {
+            AdController.show().then(() => {
+                AdController.show().then(() => {
+                    bal += 3000; updateUI(); tg.showAlert("You have been rewarded 3000 coins, congratulations 🤑🎉. Thank you.");
+                });
+            });
+        }
+
         function activateBoost() {
             if(boosts > 0 && !isBoosted) {
-                showTab('home', document.querySelectorAll('.nav-item')[0]); // Teleport back
+                showTab('home', document.querySelectorAll('.nav-item')[0]);
                 boosts--; isBoosted = true; document.body.classList.add('boost-active');
                 let sec = 20;
                 const t = setInterval(() => {
@@ -240,35 +237,26 @@
             }
         }
 
-        function showDoubleAd() {
-            AdController.show().then(() => {
-                AdController.show().then(() => {
-                    bal += 4000; updateUI(); tg.showAlert("Double Impression Success! +4,000 Coins");
-                });
-            });
-        }
-
         function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
-        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased!"); } else { tg.showAlert("Insufficient!"); } }
+        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased! Thank you."); } else { tg.showAlert("Insufficient! Thank you."); } }
         function startBot() { setInterval(() => { bal += (isPrem() ? 5 : 1); updateUI(); }, 3000); }
 
         function activatePremium() {
             if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
-                premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); // 3 Days from now
-                salt++; updateUI(); tg.showAlert("Premium Activated for 3 Days!");
-            } else { tg.showAlert("INVALID CODE"); }
+                premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); 
+                salt++; updateUI(); tg.showAlert("Premium Activated! Thank you.");
+            } else { tg.showAlert("INVALID CODE. Thank you."); }
         }
 
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
             window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
-            setTimeout(() => { bal += reward; localStorage.setItem(taskKey, 'true'); updateUI(); tg.showAlert("Task Verified!"); }, 5000);
+            setTimeout(() => { bal += reward; localStorage.setItem(taskKey, 'true'); updateUI(); tg.showAlert("Task Verified! Thank you."); }, 5000);
         }
 
         function requestRedeem() { if(dia >= 1) { dia--; updateUI(); openWA(`REDEEM-₦100 | ID: ${suffix} | TXN: CPT-${suffix}-${Date.now().toString(36).toUpperCase()}`); } }
         function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
-        function showAd() { AdController.show().then(() => { bal += 2000; updateUI(); }); }
         function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
         function adminTrigger() { adminTaps++; if (adminTaps >= 5) { if(prompt("Pass:")==="Davis2026") document.getElementById('admin-panel').style.display='block'; adminTaps=0; } }
         function closeAdmin() { document.getElementById('admin-panel').style.display='none'; }
