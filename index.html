@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v58.0</title>
+    <title>Crypto_Tap v58.2</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -13,7 +13,7 @@
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
         .nebula-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background: #010205; }
         
-        /* AUTHENTIC TAPSWAP 3D COIN */
+        /* UPDATED: SUBTLE 3D COIN */
         .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
         .coin-btn { 
             width: 320px; height: 320px; border-radius: 50%; 
@@ -39,12 +39,14 @@
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
+        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
         #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
         #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
     </style>
 </head>
 <body onload="initApp();">
-    <div id="ad-countdown"> HOLD ON FOR REWARD: <span id="ad-timer-val">7</span>s</div>
+    <div id="ad-countdown">NEXT AD IN: <span id="ad-timer-val">7</span>s</div>
     
     <div id="bot-modal">
         <h2 style="color:var(--gold); margin:0;">🤖 WHILE YOU WERE AWAY</h2>
@@ -59,14 +61,14 @@
         <div class="coin-wrapper"><div class="coin-btn" id="coin"></div></div>
         <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
         <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET +3,000 COINS HERE</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
     </div>
 
     <div id="tasks" class="container">
         <h2 style="color:var(--gold);">TASKS</h2>
         <div class="glass-card">
             <p>Follow @ogprincedavis5081 on TikTok. Like & Comment on all videos.</p>
-            <button id="tiktok-btn" class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">LIKE AND FOLLOW (+5,000)</button>
+            <button id="tiktok-btn" class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">LIKE AND COMMENT (+5,000)</button>
         </div>
     </div>
 
@@ -74,7 +76,7 @@
         <h2 style="color:var(--gold);">BOOSTERS</h2>
         <div class="glass-card">
             <h3>🤖 AUTO-TAP BOT</h3>
-            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">PURCHASE BOT FOR 15,000 COINS</button>
+            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">PURCHASE FOR 15,000 COINS</button>
         </div>
         <div class="glass-card">
             <h3>⚡ WARP BOOST (5X)</h3>
@@ -89,7 +91,7 @@
             <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
             <p>Premium Subscription (20x Tap)</p>
             <p>Price: ₦200 | OPay: <b>8124647818</b></p>
-            <button class="btn-gold" onclick="openWA('Proof for Premium')">SEND RECEIPT</button>
+            <button class="btn-gold" onclick="openWA('Proof for Premium')">SEND RECIPT</button>
         </div>
         <div class="glass-card">
             <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
@@ -151,13 +153,29 @@
                 let val = (premExpiry > Date.now() ? 20 : 1);
                 bal += val; adThreshold += val;
                 
+                // CREATE FLOATING NUMBER
+                const valEl = document.createElement('div');
+                valEl.className = 'tap-val';
+                valEl.innerText = `+${val}`;
+                valEl.style.left = touches[i].clientX + 'px';
+                valEl.style.top = touches[i].clientY + 'px';
+                document.body.appendChild(valEl);
+                setTimeout(() => valEl.remove(), 800);
+
+                // UPDATED: 20-DEGREE TILT PHYSICS
                 const rect = document.getElementById('coin').getBoundingClientRect();
                 const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
                 const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
                 document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
                 setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
                 
-                if(adThreshold >= 3000) { adThreshold = 0; AdController.show().then(() => { bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); }); }
+                if(adThreshold >= 3000) { 
+                    adThreshold = 0; 
+                    AdController.show().then(() => { 
+                        bal += 500; updateUI(); 
+                        tg.showAlert("Ad Verified! +500 Coins Bonus added. Good job!"); 
+                    }); 
+                }
             }
             updateUI();
         }
@@ -171,7 +189,7 @@
                         clearInterval(t); document.getElementById('ad-countdown').style.display = 'none';
                         AdController.show().then(() => {
                             bal += 3000; updateUI();
-                            tg.showAlert("Congratulations, you have been rewarded 3000 coins, 🤑🎉. Good job!.");
+                            tg.showAlert("Congratulations, you have been rewarded 3000 coins 🤑🎉. Good job!");
                         });
                     }
                 }, 1000);
@@ -201,12 +219,12 @@
 
         function activatePremium() {
             if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
-                premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++; updateUI(); tg.showAlert("Premium Activated! Good job!.");
-            } else { tg.showAlert("INVALID CODE. Thank you."); }
+                premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++; updateUI(); tg.showAlert("Premium Activated! Good job!");
+            } else { tg.showAlert("INVALID CODE."); }
         }
 
-        function doTask(t, reward) { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); setTimeout(() => { bal += reward; updateUI(); tg.showAlert("Task Verified! Thank you."); }, 5000); }
-        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); tg.showAlert("Bot Purchased! Thank you."); } }
+        function doTask(t, reward) { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); setTimeout(() => { bal += reward; updateUI(); tg.showAlert("Task Verified! Good job!"); }, 5000); }
+        function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); tg.showAlert("Bot Purchased! Good job!"); } }
         function startBot() { setInterval(() => { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); }, 3000); }
         function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
         function requestRedeem() { if(dia >= 1) { dia--; updateUI(); openWA(`REDEEM-₦100 | ID: ${suffix}`); } }
