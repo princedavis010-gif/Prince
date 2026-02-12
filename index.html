@@ -20,7 +20,7 @@
             display: flex; align-items: center; justify-content: center; 
             transition: transform 0.08s ease-out; 
             transform-style: preserve-3d; cursor: pointer;
-            background-image: url('https://app.tapswap.club/assets/coin-Yc4kFV6s.png');
+            background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg');
             background-size: cover;
             background-position: center;
             border: none;
@@ -152,8 +152,8 @@
                 bal += val; adThreshold += val;
                 
                 const rect = document.getElementById('coin').getBoundingClientRect();
-                const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 40;
-                const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 40;
+                const rotateY = ((touches[i].clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20;
+                const rotateX = -((touches[i].clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20;
                 document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
                 setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
                 
