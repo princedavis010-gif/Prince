@@ -40,7 +40,7 @@
     <div id="bot-modal">
         <h2 style="color:var(--gold); margin:0;">🤖 BOT EARNINGS</h2>
         <p id="bot-earned-msg" style="font-size:18px; margin:15px 0;"></p>
-        <button class="btn-gold" onclick="closeBotModal()">COLLECT RICHES</button>
+        <button class="btn-gold" onclick="closeBotModal()">CLAIM</button>
     </div>
 
     <div id="admin-panel">
@@ -237,7 +237,7 @@
                         AdController.show().then(() => {
                             bal += 3000; 
                             updateUI(); 
-                            tg.showAlert("You have been rewarded 3000 coins, congratulations 🤑🎉. Thank you.");
+                            tg.showAlert("Congratulations, you have been rewarded 3000 coins 🤑🎉.");
                         });
                     }
                 }, 1000);
