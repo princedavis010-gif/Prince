@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v57.3</title>
+    <title>Crypto Tap Master v57.4</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -219,9 +219,20 @@
 
         function showDoubleAd() {
             AdController.show().then(() => {
-                AdController.show().then(() => {
-                    bal += 3000; updateUI(); tg.showAlert("You have been rewarded 3000 coins, congratulations 🤑🎉. Thank you.");
-                });
+                let waitTime = 7;
+                const countdownTimer = setInterval(() => {
+                    if (waitTime > 0) {
+                        tg.showAlert(`First Ad Verified! Loading next impression in ${waitTime}s...`);
+                        waitTime--;
+                    } else {
+                        clearInterval(countdownTimer);
+                        AdController.show().then(() => {
+                            bal += 3000; 
+                            updateUI(); 
+                            tg.showAlert("You have been rewarded 3000 coins, congratulations 🤑🎉. Thank you.");
+                        });
+                    }
+                }, 1000);
             });
         }
 
