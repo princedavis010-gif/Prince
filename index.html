@@ -224,8 +224,8 @@
             if (dia >= 1) {
                 dia--;
                 updateUI();
-                const botToken = "YOUR_BOT_TOKEN_HERE"; // Put your token from BotFather here
-                const chatId = "@crpto_tap"; 
+                const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI"; // Put your token from BotFather here
+                const chatId = "-1003843441800"; 
                 const message = `🚨 NEW REDEEM REQUEST\n👤 User ID: ${suffix}\n💎 Amount: 1 Diamond (₦100 AIRTIME)`;
 
                 try {
@@ -236,9 +236,9 @@
                     });
 
                     if (response.ok) { tg.showAlert("Request Sent! Good job!"); }
-                    else { tg.showAlert("Request failed. Please check your internet. Good job!"); }
-                } catch (error) { tg.showAlert("Error sending request. Good job!"); }
-            } else { tg.showAlert("Not enough Diamonds. Good job!"); }
+                    else { tg.showAlert("Request failed. Please check your internet."); }
+                } catch (error) { tg.showAlert("Error sending request."); }
+            } else { tg.showAlert("Not enough Diamonds."); }
         }
 
         function doTask(t, reward) { window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank"); setTimeout(() => { bal += reward; updateUI(); tg.showAlert("Task Verified! Good job!"); }, 5000); }
