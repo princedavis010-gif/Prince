@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v57.2</title>
+    <title>Crypto Tap Master v57.3</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -35,7 +35,7 @@
     <div id="bot-modal">
         <h2 style="color:var(--gold); margin:0;">🤖 BOT EARNINGS</h2>
         <p id="bot-earned-msg" style="font-size:18px; margin:15px 0;"></p>
-        <button class="btn-gold" onclick="closeBotModal()">THANK YOU</button>
+        <button class="btn-gold" onclick="closeBotModal()">COLLECT RICHES</button>
     </div>
 
     <div id="admin-panel">
@@ -135,7 +135,7 @@
                     const awayCoins = Math.min(diff / 3, 5000) * (isPrem() ? 5 : 1);
                     if(awayCoins > 1) {
                         bal += Math.floor(awayCoins);
-                        document.getElementById('bot-earned-msg').innerText = `Bot earned ${Math.floor(awayCoins).toLocaleString()} coins! Thank you.`;
+                        document.getElementById('bot-earned-msg').innerText = `Bot earned ${Math.floor(awayCoins).toLocaleString()} coins!`;
                         document.getElementById('bot-modal').style.display = 'block';
                     }
                 }
