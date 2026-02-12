@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto Tap Master v57.4</title>
+    <title>Crypto Tap Master v57.5</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -29,9 +29,14 @@
         .nav-item.active { color: var(--gold); }
         #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; padding: 30px; }
+        
+        /* New Auto-Ad Timer Style */
+        #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); pointer-events: none; }
     </style>
 </head>
 <body onload="initApp();">
+    <div id="ad-countdown">NEXT AD IN: <span id="ad-timer-val">7</span>s</div>
+    
     <div id="bot-modal">
         <h2 style="color:var(--gold); margin:0;">🤖 BOT EARNINGS</h2>
         <p id="bot-earned-msg" style="font-size:18px; margin:15px 0;"></p>
@@ -193,18 +198,15 @@
                 if (eng > 0) {
                     let val = (isPrem() ? 20 : 1) * (isBoosted ? 5 : 1);
                     bal += val; eng--; adThreshold += val; 
-                    
                     const valEl = document.createElement('div');
                     valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
                     valEl.style.left = touches[i].clientX + 'px'; valEl.style.top = touches[i].clientY + 'px';
                     document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800);
-                    
                     const rect = document.getElementById('coin').getBoundingClientRect();
                     const x = ((touches[i].clientX - rect.left) / rect.width - 0.5) * 65;
                     const y = ((touches[i].clientY - rect.top) / rect.height - 0.5) * -65;
                     document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
                     setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0) rotateX(0)", 150);
-                    
                     if(adThreshold >= 3000) { 
                         adThreshold = 0; 
                         AdController.show().then(() => {
@@ -220,12 +222,18 @@
         function showDoubleAd() {
             AdController.show().then(() => {
                 let waitTime = 7;
+                const countdownOverlay = document.getElementById('ad-countdown');
+                const countdownText = document.getElementById('ad-timer-val');
+                
+                countdownOverlay.style.display = 'block';
+                countdownText.innerText = waitTime;
+                
                 const countdownTimer = setInterval(() => {
-                    if (waitTime > 0) {
-                        tg.showAlert(`First Ad Verified! Loading next impression in ${waitTime}s...`);
-                        waitTime--;
-                    } else {
+                    waitTime--;
+                    countdownText.innerText = waitTime;
+                    if (waitTime <= 0) {
                         clearInterval(countdownTimer);
+                        countdownOverlay.style.display = 'none';
                         AdController.show().then(() => {
                             bal += 3000; 
                             updateUI(); 
@@ -251,21 +259,18 @@
         function showAdForBoost() { AdController.show().then(() => { boosts++; document.getElementById('boost-ad-btn').style.display = "none"; updateUI(); }); }
         function buyBot() { if(bal >= 15000) { bal -= 15000; hasBot = true; startBot(); updateUI(); tg.showAlert("Bot Purchased! Thank you."); } else { tg.showAlert("Insufficient! Thank you."); } }
         function startBot() { setInterval(() => { bal += (isPrem() ? 5 : 1); updateUI(); }, 3000); }
-
         function activatePremium() {
             if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) {
                 premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); 
                 salt++; updateUI(); tg.showAlert("Premium Activated! Thank you.");
             } else { tg.showAlert("INVALID CODE. Thank you."); }
         }
-
         function doTask(t, reward) {
             const taskKey = v+'task_'+t+'_'+uid;
             if (localStorage.getItem(taskKey) === 'true') return;
             window.open("https://www.tiktok.com/@ogprincedavis5081", "_blank");
             setTimeout(() => { bal += reward; localStorage.setItem(taskKey, 'true'); updateUI(); tg.showAlert("Task Verified! Thank you."); }, 5000);
         }
-
         function requestRedeem() { if(dia >= 1) { dia--; updateUI(); openWA(`REDEEM-₦100 | ID: ${suffix} | TXN: CPT-${suffix}-${Date.now().toString(36).toUpperCase()}`); } }
         function openWA(m) { window.open(`https://wa.me/2348124647818?text=${encodeURIComponent(m)}`); }
         function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
