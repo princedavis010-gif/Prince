@@ -142,7 +142,7 @@
                     if(adThreshold >= 3000) { 
                         adThreshold = 0; 
                         AdController.show().then(() => {
-                            bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins Bonus added. Thank you.");
+                            bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins Bonus added. Good Job!");
                         });
                     }
                 }
@@ -162,7 +162,7 @@
                     if (waitTime <= 0) {
                         clearInterval(t); overlay.style.display = 'none';
                         AdController.show().then(() => {
-                            bal += 3000; updateUI(); tg.showAlert("Congratulations, you have been rewarded 3000 coins 🤑🎉.");
+                            bal += 3000; updateUI(); tg.showAlert("Congratulations, you have been rewarded 3000 coins, 🤑🎉. Good Job!");
                         });
                     }
                 }, 1000);
@@ -172,7 +172,7 @@
         // ... Other functions (activateBoost, buyBot, startBot, etc.) remain identical to v57.5 ...
         
         function updateUI() {
-            if (bal >= 10000) { bal -= 10000; dia++; confetti(); }
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('boost-count').innerText = boosts;
