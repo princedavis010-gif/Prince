@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v62.6</title>
+    <title>Crypto_Tap v62.7</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -62,7 +62,18 @@
 
     <div id="premium" class="container">
         <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
-        <div class="glass-card"><p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p><p>Premium Sub (20x Tap) | ₦200</p><p>OPay: <b>8124647818</b></p><input type="file" id="receipt-upload" style="display:none;" onchange="uploadReceipt()"><button class="btn-gold" id="upload-btn" onclick="document.getElementById('receipt-upload').click()">📁 UPLOAD RECEIPT</button></div>
+        <div class="glass-card">
+            <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
+            <p>Premium Sub (20x Tap) | ₦200</p>
+            <p>OPay: <b>8124647818</b></p>
+            
+            <label for="receipt-upload" class="btn-gold" style="display: block; cursor: pointer; text-align: center;">
+                📁 UPLOAD RECEIPT
+            </label>
+            <input type="file" id="receipt-upload" accept="image/*" style="display:none;" onchange="uploadReceipt()">
+            
+            <p id="upload-status" style="font-size:12px; color:var(--green); margin-top:5px;"></p>
+        </div>
         <div class="glass-card"><input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE"><button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button></div>
         <button class="btn-gold" style="background:var(--dia); color:#000;" id="redeem-btn" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
         
@@ -106,7 +117,19 @@
         function generateAdminCode() { const sfx = document.getElementById('adm-suffix').value; const slt = document.getElementById('adm-salt').value; if(sfx.length===4 && slt){ const c = generateComplexCode(sfx, slt); document.getElementById('gen-result').innerText = c; navigator.clipboard.writeText(c); tg.showAlert("Code Copied!"); } }
         async function sendDirectMessage() { const target = document.getElementById('msg-uid').value; const t = document.getElementById('msg-text').value; try { const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: target, text: t }) }); if(r.ok) { tg.showAlert("Message Sent!"); document.getElementById('msg-text').value = ""; } } catch(e){} }
         function handleTap(e) { e.preventDefault(); const t = e.changedTouches ? e.changedTouches[0] : e; if(eng > 0) { let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1); bal += val; if(!isBoosted) adThreshold += val; eng--; const valEl = document.createElement('div'); valEl.className = 'tap-val'; valEl.innerText = `+${val}`; valEl.style.left = t.clientX + 'px'; valEl.style.top = t.clientY + 'px'; document.body.appendChild(valEl); setTimeout(() => valEl.remove(), 800); const rect = document.getElementById('coin').getBoundingClientRect(); const rotateY = ((t.clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 20; const rotateX = -((t.clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 20; document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`; setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80); if(adThreshold >= 5000) { adThreshold = 0; AdController.show().then(() => { bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins. Good job!"); }); } } updateUI(); }
-        async function uploadReceipt() { const f = document.getElementById('receipt-upload').files[0]; if(!f) return; const b = document.getElementById('upload-btn'); b.innerText = "SENDING..."; b.disabled = true; const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f); fd.append('caption', `🧾 PREMIUM RECEIPT\n🆔 Suffix: ${suffix}\n👤 UID: ${uid}`); try { const r = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd }); if(r.ok) { tg.showAlert("Sent!"); document.getElementById('upload-status').innerText = "Sent!"; } } finally { b.innerText = "📁 UPLOAD RECEIPT"; b.disabled = false; } }
+        async function uploadReceipt() { 
+            const fileInput = document.getElementById('receipt-upload');
+            if (!fileInput.files || fileInput.files.length === 0) return; 
+            const f = fileInput.files[0]; const status = document.getElementById('upload-status');
+            status.innerText = "SENDING TO ADMIN...";
+            const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f); fd.append('caption', `🧾 PREMIUM RECEIPT\n🆔 Suffix: ${suffix}\n👤 UID: ${uid}`); 
+            try { 
+                const r = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd }); 
+                if(r.ok) { tg.showAlert("Sent! Verification pending."); status.innerText = "✅ Receipt Sent!"; } 
+                else { tg.showAlert("Failed to send."); status.innerText = "Upload failed."; }
+            } catch(e) { tg.showAlert("Error."); status.innerText = "Error."; }
+            finally { fileInput.value = ""; } 
+        }
         function updateUI() {
             if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
             document.getElementById('balance').innerText = bal.toLocaleString(); document.getElementById('diamonds').innerText = dia;
