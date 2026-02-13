@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v59.7</title>
+    <title>Crypto_Tap v59.8</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -129,7 +129,7 @@
         let lastVisit = parseInt(localStorage.getItem(v+'lastVis_'+uid)) || Date.now();
         let txs = JSON.parse(localStorage.getItem(v+'txs_'+uid)) || [];
         
-        // DAILY RESET LOGIC
+        // --- THE DAILY BOOST RESET (24H) ---
         let boosts = parseInt(localStorage.getItem(v+'boosts_'+uid));
         if (isNaN(boosts)) boosts = 2;
         let lastReset = parseInt(localStorage.getItem(v+'lastReset_'+uid)) || 0;
@@ -191,11 +191,17 @@
             document.getElementById('p-suffix').innerText = suffix;
             document.getElementById('energy').innerText = eng;
             document.getElementById('boost-count').innerText = boosts;
+            
             const botBtn = document.getElementById('bot-purchase-btn');
-            if(hasBot) {
+            if(hasBot && botExpiry > Date.now()) {
                 botBtn.innerText = "ACTIVE";
                 botBtn.className = "btn-gold btn-active";
+            } else {
+                hasBot = false;
+                botBtn.innerText = "PURCHASE FOR 15,000 COINS";
+                botBtn.className = "btn-gold";
             }
+
             const hEl = document.getElementById('tx-history');
             if (txs.length > 0) hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
             localStorage.setItem(v+'bal_'+uid, bal);
@@ -284,15 +290,15 @@
         }
 
         function buyBot() { 
-            if(!hasBot && bal >= 15000) { 
+            if((!hasBot || botExpiry <= Date.now()) && bal >= 15000) { 
                 bal -= 15000; hasBot = true; 
                 botExpiry = Date.now() + (12 * 60 * 60 * 1000);
                 startBot(); updateUI(); 
                 tg.showAlert("Auto Tap Bot activated for 12 hours. Good job!"); 
-            } else if(hasBot) {
+            } else if(hasBot && botExpiry > Date.now()) {
                 const remain = Math.max(0, Math.floor((botExpiry - Date.now()) / (60 * 60 * 1000)));
                 tg.showAlert(`Bot is already active! ${remain} hours remaining.`);
-            }
+            } else { tg.showAlert("Not enough coins for bot."); }
         }
         function startBot() { if(hasBot) { setInterval(() => { if(botExpiry > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); } }
         function activatePremium() { if (document.getElementById('code-input').value === ("Davis2026" + suffix + (salt * 7))) { premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++; updateUI(); tg.showAlert("Premium Activated! Good job!"); } else tg.showAlert("INVALID CODE."); }
