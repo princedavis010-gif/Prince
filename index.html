@@ -3,258 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v100.0 Elite</title>
+    <title>Crypto_Tap v102.0</title>
     
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    
     <script src='//libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
     <style>
-        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #010205; --glass: rgba(255,255,255,0.08); }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; user-select: none; }
+        :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #010205; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); }
         
-        /* LOADING SCREEN */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .loader-bar { width: 200px; height: 6px; background: #333; border-radius: 3px; margin-top: 20px; overflow: hidden; }
-        .loader-progress { height: 100%; background: var(--gold); width: 0%; transition: width 0.2s; }
+        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 110px; }
+        .container.active { display: flex; }
 
-        /* MAIN UI */
-        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; opacity: 0; transition: opacity 0.3s; }
-        .container.active { display: flex; opacity: 1; }
-        
-        /* 3D COIN */
-        .coin-wrapper { perspective: 1000px; margin: 20px 0; z-index: 5; }
+        .coin-wrapper { perspective: 1000px; margin: 30px 0; z-index: 5; }
         .coin-btn { 
-            width: 300px; height: 300px; border-radius: 50%; 
-            transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer;
+            width: 310px; height: 310px; border-radius: 50%; 
+            transition: transform 0.1s ease-out; transform-style: preserve-3d; cursor: pointer;
             background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg');
-            background-size: cover; background-position: center; border: 5px solid rgba(255,255,255,0.15);
-            box-shadow: 0 0 60px rgba(243, 186, 47, 0.2);
+            background-size: cover; background-position: center; border: 5px solid rgba(255,255,255,0.1);
         }
-        .coin-btn:active { transform: scale(0.97); }
 
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #d4a017); color: #000; padding: 16px; border-radius: 14px; font-weight: 800; border: none; width: 100%; margin: 8px 0; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
-        .glass-card { background: var(--glass); border-radius: 20px; padding: 20px; width: 100%; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: center; backdrop-filter: blur(10px); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 15px; border-radius: 12px; font-weight: 800; border: none; width: 100%; margin: 5px 0; cursor: pointer; text-transform: uppercase; }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 15px; padding: 15px; width: 100%; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
 
-        /* RIGGED GRID */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 320px; margin: 20px 0; }
-        .box { height: 90px; background: linear-gradient(145deg, #1a1a1a, #111); border: 1px solid #333; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; transition: 0.2s; color: var(--gold); }
-        .box:active { transform: scale(0.95); border-color: var(--gold); }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 300px; margin: 15px 0; }
+        .box { height: 90px; background: #111; border: 1px solid var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; }
 
-        /* NAV BAR */
-        .nav { height: 90px; background: rgba(0,0,0,0.9); display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; backdrop-filter: blur(5px); z-index: 100; }
-        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .nav-item.active { color: var(--gold); transform: translateY(-5px); }
-
-        /* DAILY REWARD POPUP */
-        #daily-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; display:none; align-items:center; justify-content:center; }
-        .modal-content { background: #1a1a1a; padding: 30px; border-radius: 25px; text-align: center; border: 2px solid var(--gold); width: 80%; }
+        .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
+        .nav-item { flex: 1; text-align: center; padding-top: 18px; color: #555; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
     </style>
 </head>
-<body onload="startLoad()">
-
-    <div id="loader">
-        <h2 style="color:var(--gold); letter-spacing:2px;">CRYPTO TAP</h2>
-        <div class="loader-bar"><div class="loader-progress" id="prog"></div></div>
-        <p style="color:#666; font-size:12px; margin-top:10px;">SECURE CONNECTION...</p>
-    </div>
-
-    <div id="daily-modal">
-        <div class="modal-content">
-            <h2 style="color:var(--gold);">DAILY LOGIN</h2>
-            <div style="font-size:40px; margin:20px 0;">🎁</div>
-            <p>You received <b>+1,000 Coins</b>!</p>
-            <button class="btn-gold" onclick="claimDaily()">CLAIM</button>
-        </div>
-    </div>
+<body onload="initApp()">
 
     <div id="home" class="container active">
-        <div id="balance" style="font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(243,186,47,0.4);">0</div>
-        <div style="color: var(--dia); font-size: 18px; font-weight: bold; margin-bottom:10px;">💎 <span id="diamonds">0</span></div>
+        <div id="balance" style="font-size: 50px; font-weight: 900; color: var(--gold);">0</div>
+        <div style="color: var(--dia); font-size: 20px; margin-bottom: 5px;">💎 <span id="diamonds">0</span></div>
         <div class="coin-wrapper"><div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div></div>
-        <div style="font-weight: bold; font-size: 16px; color:#aaa; margin-top:10px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); color:#000; margin-top:25px;" onclick="showBellaAd()">📺 BONUS 3,000 COINS</button>
+        <div style="font-weight: bold;">⚡ <span id="energy">1000</span> / 1000</div>
+        <button class="btn-gold" style="background: var(--dia); margin-top: 20px;" onclick="showBellaAd()">📺 FREE 3,000 COINS</button>
     </div>
 
     <div id="grid-tab" class="container">
         <h2 style="color:var(--gold);">MYSTERY SQUARE</h2>
-        <p style="color:#777; font-size:12px;">Find the hidden coins. Watch out for traps!</p>
         <div class="grid">
             <div class="box" onclick="openBox(1)">?</div><div class="box" onclick="openBox(2)">?</div><div class="box" onclick="openBox(3)">?</div>
             <div class="box" onclick="openBox(4)">?</div><div class="box" onclick="openBox(5)">?</div><div class="box" onclick="openBox(6)">?</div>
             <div class="box" onclick="openBox(7)">?</div><div class="box" onclick="openBox(8)">?</div><div class="box" onclick="openBox(9)">?</div>
         </div>
-        <div class="glass-card"><h3>👥 INVITE SQUAD</h3><button class="btn-gold" style="background:var(--purple); color:#fff;" onclick="shareInvite()">INVITE (+40,000)</button></div>
+        <div class="glass-card"><h3>👥 REFERRAL</h3><button class="btn-gold" style="background:var(--purple); color:#fff;" onclick="share()">INVITE FRIENDS (+40,000)</button></div>
     </div>
 
     <div id="shop" class="container">
-        <h2 style="color:var(--gold);">MARKETPLACE</h2>
+        <h2 style="color:var(--gold);">BOOSTERS</h2>
         <div class="glass-card">
             <h3>🤖 AUTO-FARM BOT</h3>
-            <p style="font-size:12px; color:#aaa; margin-bottom:10px;">Farms coins while you are away (12h)</p>
-            <p id="bot-status" style="font-size: 14px; color: var(--green); font-weight:bold;">OFFLINE</p>
-            <button id="bot-btn" class="btn-gold" onclick="botControl()">BUY FOR 15,000</button>
+            <p id="bot-status" style="font-size: 12px; color: #888;">OFFLINE</p>
+            <button id="bot-btn" class="btn-gold" onclick="botAction()">BUY FOR 15,000</button>
         </div>
     </div>
 
     <div id="elite" class="container">
-        <h2 style="color:var(--gold);">ELITE CLUB</h2>
-        <div class="glass-card">
-            <div style="font-size:20px; font-weight:bold; margin-bottom:5px;">USER ID: <span id="u-suffix" style="color:var(--dia);">----</span></div>
-            <div style="background:#222; padding:10px; border-radius:10px; margin:10px 0; font-family:monospace;">OPay: 8124647818</div>
-            <button class="btn-gold" id="up-btn" onclick="document.getElementById('file').click()">📁 UPLOAD RECEIPT</button>
-            <input type="file" id="file" style="display:none;" onchange="fakeUpload()">
-        </div>
-        <div class="glass-card" onclick="adminTrigger()"><h4 id="recent-label">📜 SYSTEM LOGS</h4>
-            <div id="admin-panel" style="display:none; padding-top:20px; border-top:1px solid #333;">
-                <input type="text" id="adm-s" placeholder="User Suffix" style="width:70%; padding:12px; background:#111; color:#fff; border:1px solid #444; border-radius:8px;"><br>
-                <button class="btn-gold" style="font-size:12px; width:60%; margin-top:10px;" onclick="genAdminCode()">GENERATE ACCESS</button>
-                <p id="gen-res" style="color:var(--green); font-weight:bold; margin-top:15px; font-family:monospace;"></p>
+        <h2 style="color:var(--gold);">ELITE SHOP</h2>
+        <div class="glass-card"><p style="font-size:22px;">ID: <span id="u-suffix">----</span></p><button class="btn-gold" onclick="document.getElementById('file').click()">📁 UPLOAD RECEIPT</button><input type="file" id="file" style="display:none;" onchange="tg.showAlert('Uploaded!')"></div>
+        <div class="glass-card" onclick="adminTrigger()"><h4 id="activity-label">📜 RECENT ACTIVITY</h4>
+            <div id="admin-panel" style="display:none; padding-top:15px; border-top:1px solid #333;">
+                <input type="text" id="adm-s" placeholder="User Suffix" style="width:70%; padding:8px;"><br>
+                <button class="btn-gold" style="font-size:12px; width:60%;" onclick="gen()">GENERATE CODE</button>
+                <p id="res" style="color:var(--green);"></p>
             </div>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="navTo('home', this)">🪙<br>Home</div>
-        <div class="nav-item" onclick="navTo('grid-tab', this)">🎲<br>Game</div>
-        <div class="nav-item" onclick="navTo('shop', this)">⚡<br>Boost</div>
-        <div class="nav-item" onclick="navTo('elite', this)">⭐<br>Elite</div>
+        <div class="nav-item active" onclick="tab('home', this)">🪙<br>Home</div>
+        <div class="nav-item" onclick="tab('grid-tab', this)">📋<br>Grid</div>
+        <div class="nav-item" onclick="tab('shop', this)">⚡<br>Boost</div>
+        <div class="nav-item" onclick="tab('elite', this)">⭐<br>Elite</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; 
-        const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "8888";
+        const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-4);
-        const v = "v100_";
-        
-        // --- DATA LAYER ---
+        const v = "v102_";
+
         let bal = parseInt(localStorage.getItem(v+'bal')) || 0;
         let dia = parseInt(localStorage.getItem(v+'dia')) || 0;
         let eng = parseInt(localStorage.getItem(v+'eng')) || 1000;
         let hasBot = localStorage.getItem(v+'bot') === 'true';
-        let botExp = parseInt(localStorage.getItem(v+'botExp')) || 0;
-        let lastLogin = localStorage.getItem(v+'lastLogin');
-        let adsgramCount = 0;
+        let botUntil = parseInt(localStorage.getItem(v+'botT')) || 0;
+        let adCount = 0;
 
         const Adsgram = window.Adsgram.init({ blockId: "22672" });
 
-        // --- LOADING SCREEN ---
-        function startLoad() {
-            let p = 0;
-            const bar = document.getElementById('prog');
-            const interval = setInterval(() => {
-                p += Math.random() * 15;
-                if(p > 100) p = 100;
-                bar.style.width = p + '%';
-                if(p === 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('loader').style.opacity = '0';
-                        setTimeout(() => { 
-                            document.getElementById('loader').style.display = 'none'; 
-                            checkDaily(); 
-                        }, 500);
-                        tg.expand();
-                        updateUI();
-                        // Preload Monetag
-                        if(typeof show_10611291 === 'function') show_10611291({ type: 'preload' });
-                    }, 500);
-                }
-            }, 100);
-            
-            // Background Logic
-            setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2000); // Energy
-            setInterval(() => { if(hasBot && Date.now() < botExp) { bal += 15; updateUI(); } }, 3000); // Bot
-        }
-
-        // --- DAILY REWARD ---
-        function checkDaily() {
-            const today = new Date().toDateString();
-            if(lastLogin !== today) {
-                document.getElementById('daily-modal').style.display = 'flex';
-            }
-        }
-        function claimDaily() {
-            bal += 1000;
-            localStorage.setItem(v+'lastLogin', new Date().toDateString());
-            document.getElementById('daily-modal').style.display = 'none';
+        function initApp() {
             updateUI();
-            tg.showAlert("Daily Reward Claimed!");
-        }
-
-        // --- MONETAG BELLA ART ---
-        async function showBellaAd() {
+            tg.expand();
+            setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2500);
+            setInterval(() => { if(hasBot && Date.now() < botUntil) { bal += 10; updateUI(); } }, 4000);
+            
+            // Preload Monetag to initialize the connection
             if(typeof show_10611291 === 'function') {
-                try {
-                    await show_10611291();
-                    bal += 3000; updateUI();
-                    tg.showAlert("Excellent! +3,000 Coins added.");
-                    show_10611291({ type: 'preload' }); // Reload next
-                } catch(e) { tg.showAlert("Ad not ready. Try again later."); }
-            } else { tg.showAlert("Ad Connection Error."); }
-        }
-
-        // --- TAP LOGIC + TILT ---
-        function handleTap(e) {
-            if(eng <= 0) { tg.showAlert("Low Energy!"); return; }
-            bal++; eng--; adsgramCount++;
-            
-            // 3D Tilt
-            const el = document.getElementById('coin');
-            const rect = el.getBoundingClientRect();
-            const t = e.changedTouches ? e.changedTouches[0] : e;
-            const x = ((t.clientX - (rect.left + rect.width/2)) / (rect.width/2)) * 15;
-            const y = -((t.clientY - (rect.top + rect.height/2)) / (rect.height/2)) * 15;
-            el.style.transform = `rotateY(${x}deg) rotateX(${y}deg) scale(0.98)`;
-            setTimeout(() => el.style.transform = "rotateY(0deg) rotateX(0deg) scale(1)", 100);
-
-            if(adsgramCount >= 5000) { adsgramCount = 0; Adsgram.show().then(() => { bal += 500; updateUI(); }); }
-            updateUI();
-        }
-
-        // --- RIGGED GRID (1 & 9) ---
-        function openBox(n) {
-            if(n === 1 || n === 9) {
-                tg.showAlert("Trap! This box is empty.");
-            } else {
-                bal += 250; updateUI();
-                tg.showAlert("You found 250 Coins!");
+                show_10611291({ type: 'preload', telegram_id: uid });
             }
         }
 
-        // --- BOT LOGIC ---
-        function botControl() {
+        // --- VERIFIED MONETAG AD CALL ---
+        async function showBellaAd() {
+            if (typeof show_10611291 === 'function') {
+                try {
+                    // This pauses the script until the ad is confirmed by Monetag backend
+                    const result = await show_10611291({ telegram_id: uid });
+                    
+                    // MUST check for 'valued' to ensure you get paid and stats update
+                    if (result && result.reward_event_type === 'valued') {
+                        bal += 3000; 
+                        updateUI();
+                        tg.showAlert("Success! +3,000 Coins added. 💰");
+                    } else {
+                        // Users often see this if they skip or if inventory is 'low quality'
+                        tg.showAlert("Ad seen, but reward verification failed. Try again!");
+                    }
+                    
+                    // Reload for next time
+                    show_10611291({ type: 'preload', telegram_id: uid });
+
+                } catch (e) {
+                    tg.showAlert("Ad closed too early or failed.");
+                }
+            } else {
+                tg.showAlert("Ad System not ready.");
+            }
+        }
+
+        function handleTap(e) {
+            if(eng <= 0) return;
+            bal++; eng--; adCount++;
+            const t = e.changedTouches ? e.changedTouches[0] : e;
+            const r = document.getElementById('coin').getBoundingClientRect();
+            const x = ((t.clientX - (r.left + r.width/2)) / (r.width/2)) * 20;
+            const y = -((t.clientY - (r.top + r.height/2)) / (r.height/2)) * 20;
+            document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+            setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
+            
+            if(adCount >= 5000) { adCount = 0; Adsgram.show().then(() => { bal += 500; updateUI(); }); }
+            updateUI();
+        }
+
+        function openBox(n) {
+            if(n === 1 || n === 9) { tg.showAlert("Empty!"); } 
+            else { bal += 200; updateUI(); tg.showAlert("Winner! +200 Coins."); }
+        }
+
+        function botAction() {
             const now = Date.now();
-            if(!hasBot) {
-                if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); tg.showAlert("Bot Unlocked! Tap again to ACTIVATE."); }
-                else { tg.showAlert("Not enough coins (Need 15,000)"); }
-            } else if(now > botExp) {
-                botExp = now + (12 * 60 * 60 * 1000); // 12 Hours
+            if(!hasBot) { if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); } } 
+            else if(now > botUntil) {
+                botUntil = now + (12 * 60 * 60 * 1000);
                 tg.showAlert("You have successfully reactivate your auto farming bot. Good job! 🎉");
                 updateUI();
-            } else {
-                tg.showAlert("Bot is already working.");
             }
-        }
-
-        // --- FAKE UPLOAD SIMULATION ---
-        function fakeUpload() {
-            const btn = document.getElementById('up-btn');
-            const file = document.getElementById('file').files[0];
-            if(!file) return;
-            btn.innerText = "UPLOADING (0%)...";
-            let p = 0;
-            const sim = setInterval(() => {
-                p += 10;
-                btn.innerText = `UPLOADING (${p}%)...`;
-                if(p >= 100) {
-                    clearInterval(sim);
-                    btn.innerText = "UPLOAD COMPLETE ✅";
-                    setTimeout(() => btn.innerText = "📁 UPLOAD RECEIPT", 3000);
-                    tg.showAlert("Receipt sent to Admin for review.");
-                }
-            }, 150);
         }
 
         function updateUI() {
@@ -264,38 +178,30 @@
             document.getElementById('u-suffix').innerText = suffix;
             
             const bBtn = document.getElementById('bot-btn');
-            const bStat = document.getElementById('bot-status');
-            if(!hasBot) { bBtn.innerText = "BUY - 15,000"; bStat.innerText = "OFFLINE"; bStat.style.color = "red"; }
-            else if(Date.now() > botExp) { bBtn.innerText = "ACTIVATE NOW"; bStat.innerText = "EXPIRED"; bStat.style.color = "orange"; bBtn.style.background = "var(--green)"; }
-            else { bBtn.innerText = "FARMING..."; bStat.innerText = "ACTIVE"; bStat.style.color = "var(--green)"; bBtn.style.background = "#333"; }
+            if(!hasBot) bBtn.innerText = "BUY FOR 15,000";
+            else if(Date.now() > botUntil) { bBtn.innerText = "ACTIVATE"; bBtn.style.background = "var(--green)"; }
+            else { bBtn.innerText = "FARMING..."; bBtn.style.background = "#444"; }
 
             localStorage.setItem(v+'bal', bal);
             localStorage.setItem(v+'dia', dia);
             localStorage.setItem(v+'eng', eng);
             localStorage.setItem(v+'bot', hasBot);
-            localStorage.setItem(v+'botExp', botExp);
+            localStorage.setItem(v+'botT', botUntil);
         }
 
-        function navTo(id, el) {
-            document.querySelectorAll('.container').forEach(c => { c.classList.remove('active'); c.style.opacity = 0; });
-            setTimeout(() => {
-                document.getElementById(id).classList.add('active');
-                document.getElementById(id).style.opacity = 1;
-            }, 50);
+        function tab(t, el) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.getElementById(t).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
         }
 
-        // --- ADMIN & SHARE ---
-        let ac = 0; function adminTrigger() { ac++; if(ac===3) { if(prompt("KEY:")==="DavisAdmin2026") document.getElementById('admin-panel').style.display='block'; ac=0; } }
-        function genAdminCode() {
-            const s = document.getElementById('adm-s').value;
-            document.getElementById('gen-res').innerText = `DVS-${(parseInt(s)+888).toString(16).toUpperCase()}-${s}`;
+        let cl = 0; function adminTrigger() { cl++; if(cl===3) { if(prompt("Pass:")==="DavisAdmin2026") document.getElementById('admin-panel').style.display='block'; cl=0; } }
+        function gen() { 
+            const s = document.getElementById('adm-s').value; 
+            document.getElementById('res').innerText = `DVS-${(parseInt(s)+777).toString(16).toUpperCase()}-${s}`; 
         }
-        function shareInvite() { 
-            const link = `https://t.me/share/url?url=https://t.me/YourBotName?start=${uid}&text=Join%20me%20and%20get%2040000%20Coins!`;
-            tg.openTelegramLink(link);
-        }
+        function share() { tg.showAlert("Link Copied!"); }
     </script>
 </body>
 </html>
