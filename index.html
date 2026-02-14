@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v102.0</title>
+    <title>Crypto_Tap v103.0 Dual Ads</title>
     
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     
@@ -46,7 +46,10 @@
         <div style="color: var(--dia); font-size: 20px; margin-bottom: 5px;">💎 <span id="diamonds">0</span></div>
         <div class="coin-wrapper"><div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div></div>
         <div style="font-weight: bold;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button class="btn-gold" style="background: var(--dia); margin-top: 20px;" onclick="showBellaAd()">📺 FREE 3,000 COINS</button>
+        
+        <button class="btn-gold" style="background: var(--gold); margin-top: 20px;" onclick="showAdsgram()">📺 FREE 3,000 COINS (Adsgram)</button>
+        
+        <button class="btn-gold" style="background: var(--dia); margin-top: 10px;" onclick="showMonetag()">📺 FREE 3,000 COINS (Monetag)</button>
     </div>
 
     <div id="grid-tab" class="container">
@@ -91,7 +94,7 @@
         const tg = window.Telegram.WebApp; 
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-4);
-        const v = "v102_";
+        const v = "v103_";
 
         let bal = parseInt(localStorage.getItem(v+'bal')) || 0;
         let dia = parseInt(localStorage.getItem(v+'dia')) || 0;
@@ -107,38 +110,33 @@
             tg.expand();
             setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2500);
             setInterval(() => { if(hasBot && Date.now() < botUntil) { bal += 10; updateUI(); } }, 4000);
-            
-            // Preload Monetag to initialize the connection
-            if(typeof show_10611291 === 'function') {
-                show_10611291({ type: 'preload', telegram_id: uid });
-            }
         }
 
-        // --- VERIFIED MONETAG AD CALL ---
-        async function showBellaAd() {
+        // --- ADSGRAM REWARD ---
+        function showAdsgram() {
+            Adsgram.show().then((result) => {
+                bal += 3000; updateUI();
+                tg.showAlert("Adsgram Bonus Added!");
+            }).catch((e) => tg.showAlert("Ad not finished."));
+        }
+
+        // --- MONETAG REWARD (VERIFIED) ---
+        async function showMonetag() {
             if (typeof show_10611291 === 'function') {
                 try {
-                    // This pauses the script until the ad is confirmed by Monetag backend
-                    const result = await show_10611291({ telegram_id: uid });
-                    
-                    // MUST check for 'valued' to ensure you get paid and stats update
-                    if (result && result.reward_event_type === 'valued') {
-                        bal += 3000; 
-                        updateUI();
-                        tg.showAlert("Success! +3,000 Coins added. 💰");
+                    const res = await show_10611291({ telegram_id: uid });
+                    // Only add coins if the ad backend says the user actually watched it
+                    if (res && res.reward_event_type === 'valued') {
+                        bal += 3000; updateUI();
+                        tg.showAlert("Monetag Bonus Added! 💰");
                     } else {
-                        // Users often see this if they skip or if inventory is 'low quality'
-                        tg.showAlert("Ad seen, but reward verification failed. Try again!");
+                        tg.showAlert("Verification failed. Please watch the full ad.");
                     }
-                    
-                    // Reload for next time
-                    show_10611291({ type: 'preload', telegram_id: uid });
-
                 } catch (e) {
-                    tg.showAlert("Ad closed too early or failed.");
+                    tg.showAlert("Monetag Ad closed early.");
                 }
             } else {
-                tg.showAlert("Ad System not ready.");
+                tg.showAlert("Monetag not ready.");
             }
         }
 
@@ -151,8 +149,6 @@
             const y = -((t.clientY - (r.top + r.height/2)) / (r.height/2)) * 20;
             document.getElementById('coin').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
             setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
-            
-            if(adCount >= 5000) { adCount = 0; Adsgram.show().then(() => { bal += 500; updateUI(); }); }
             updateUI();
         }
 
