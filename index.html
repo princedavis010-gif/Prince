@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v62.7</title>
+    <title>Crypto_Tap v63.1</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -11,21 +11,51 @@
         :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #010205; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
+        
+        /* Tapswap Lightning Background */
+        body.boost-active { 
+            background: radial-gradient(circle, #1a0033 0%, #010205 100%);
+            animation: lightning-flash 2s infinite;
+        }
+        @keyframes lightning-flash {
+            0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); }
+            50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); }
+        }
+
         .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
         .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
         .coin-btn::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; transform: translateZ(-18px); background: #2c2105; box-shadow: inset 0 0 20px black; }
+        
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
+        
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
         .btn-active-grey { background: #555 !important; color: #888 !important; cursor: pointer !important; }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
+
+        /* Synchronized Flying Coin */
+        .flying-coin {
+            position: fixed;
+            width: 25px; height: 25px;
+            background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
+
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
+        
         #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
         #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        
+        .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
+        .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; transition: 0.1s; }
     </style>
 </head>
 
@@ -38,7 +68,10 @@
     </div>
 
     <div id="home" class="container active">
-        <div id="balance" style="font-size: 55px; font-weight: 900; color: var(--gold);">0</div>
+        <div class="bal-container">
+            <div id="bal-icon" class="bal-coin"></div>
+            <span id="balance">0</span>
+        </div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
         <div id="prem-timer" style="color:var(--green); font-weight:bold; font-size:12px; height:15px;"></div>
         <div class="coin-wrapper">
@@ -66,7 +99,7 @@
         <h2 style="color:var(--gold);">BOOSTERS</h2>
         <div class="glass-card">
             <h3>🤖 AUTO-TAP BOT</h3>
-            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">PURCHASE FOR 15,000</button>
+            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">ACTIVATE</button>
         </div>
         <div class="glass-card">
             <h3>⚡ WARP BOOST (5X)</h3>
@@ -159,11 +192,34 @@
             if (eng > 0) {
                 let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
                 bal += val; if (!isBoosted) adThreshold += val; eng--;
+                
+                // Float Text
                 const valEl = document.createElement('div');
                 valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
                 valEl.style.left = t.clientX + 'px'; valEl.style.top = t.clientY + 'px';
                 document.body.appendChild(valEl);
                 setTimeout(() => valEl.remove(), 800);
+
+                // Flying Coin (Synchronized to 0.8s)
+                const fCoin = document.createElement('div');
+                fCoin.className = 'flying-coin';
+                fCoin.style.left = t.clientX + 'px';
+                fCoin.style.top = t.clientY + 'px';
+                document.body.appendChild(fCoin);
+                
+                const target = document.getElementById('bal-icon').getBoundingClientRect();
+                setTimeout(() => {
+                    fCoin.style.left = (target.left + target.width/2) + 'px';
+                    fCoin.style.top = (target.top + target.height/2) + 'px';
+                    fCoin.style.transform = "scale(0.2)";
+                    fCoin.style.opacity = "0";
+                }, 50);
+                setTimeout(() => {
+                    fCoin.remove();
+                    document.getElementById('bal-icon').style.transform = "scale(1.2)";
+                    setTimeout(()=> document.getElementById('bal-icon').style.transform = "scale(1)", 100);
+                }, 800);
+
                 const rect = document.getElementById('coin').getBoundingClientRect();
                 const rotateY = ((t.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 20;
                 const rotateX = -((t.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * 20;
@@ -173,6 +229,7 @@
             }
             updateUI();
         }
+
         async function uploadReceipt() {
             const fileInput = document.getElementById('receipt-upload');
             if (!fileInput.files || fileInput.files.length === 0) return;
@@ -194,7 +251,7 @@
             document.getElementById('energy').innerText = eng;
             document.getElementById('boost-count').innerText = boosts;
             const bBtn = document.getElementById('bot-purchase-btn');
-            if (hasBot && botExpiry > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; } else { hasBot = false; bBtn.innerText = "PURCHASE FOR 15,000"; bBtn.className = "btn-gold"; }
+            if (hasBot && botExpiry > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; } else { hasBot = false; bBtn.innerText = "ACTIVATE"; bBtn.className = "btn-gold"; }
             const pBtn = document.getElementById('activate-btn');
             if (premExpiry > Date.now()) { pBtn.innerText = "SUBSCRIBED"; pBtn.className = "btn-gold btn-active-grey"; pBtn.onclick = () => tg.showAlert("Your Premium is active!"); } else { pBtn.innerText = "ACTIVATE PREMIUM"; pBtn.className = "btn-gold"; pBtn.style.background = "var(--green)"; pBtn.onclick = activatePremium; }
             localStorage.setItem(v + 'bal_' + uid, bal);
@@ -206,6 +263,7 @@
             const hEl = document.getElementById('tx-history');
             if (txs.length > 0) hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
         }
+
         async function requestRedeem() {
             if (dia >= 1) {
                 let ph = localStorage.getItem(v + 'phone_' + uid) || prompt("Phone Number:");
@@ -220,14 +278,34 @@
 
         function buyBot() {
             const n = Date.now();
-            if ((!hasBot || botExpiry <= n) && bal >= 15000) { bal -= 15000; hasBot = true; botExpiry = n + (12 * 60 * 60 * 1000); startBot(); updateUI(); tg.showAlert("Bot activated!"); } else if (hasBot && botExpiry > n) { tg.showAlert(`Bot is active! ${Math.ceil((botExpiry - n) / (1000 * 60 * 60))}h left.`); }
+            if (!hasBot || botExpiry <= n) { 
+                hasBot = true; 
+                botExpiry = n + (12 * 60 * 60 * 1000); 
+                startBot(); 
+                updateUI(); 
+                tg.showAlert("Auto Tap Bot Activated"); 
+            } else if (hasBot && botExpiry > n) { 
+                tg.showAlert(`Bot is active! ${Math.floor((botExpiry - n) / (1000 * 60 * 60))}h left.`); 
+            }
         }
 
         function startBot() { if (hasBot) setInterval(() => { if (botExpiry > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); }
 
         function activatePremium() { if (document.getElementById('code-input').value.trim() === generateComplexCode(suffix, salt)) { premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++; updateUI(); tg.showAlert("Congratulations! You have successfully subscribed to Premium. You are now a Premium User!"); document.getElementById('code-input').value = ""; } }
 
-        function activateBoost() { if (boosts > 0 && !isBoosted) { boosts--; isBoosted = true; updateUI(); showTab('home', document.querySelectorAll('.nav-item')[0]); tg.showAlert("Warp Speed!"); setTimeout(() => { isBoosted = false; updateUI(); }, 20000); } }
+        function activateBoost() { 
+            if (boosts > 0 && !isBoosted) { 
+                boosts--; isBoosted = true; 
+                document.body.classList.add('boost-active');
+                updateUI(); showTab('home', document.querySelectorAll('.nav-item')[0]); 
+                tg.showAlert("Warp Speed!"); 
+                setTimeout(() => { 
+                    isBoosted = false; 
+                    document.body.classList.remove('boost-active');
+                    updateUI(); 
+                }, 20000); 
+            } 
+        }
 
         function showDoubleAd() {
             AdController.show().then(() => {
@@ -249,12 +327,18 @@
             localStorage.setItem(v + 'lastVis_' + uid, Date.now());
         }
 
-        function checkPremiumExpiry() { const t = document.getElementById('prem-timer'); if (premExpiry > Date.now()) t.innerText = `PREMIUM: ${Math.floor((premExpiry - Date.now()) / (1000 * 60 * 60))}h left`; else t.innerText = ""; }
+        function checkPremiumExpiry() { 
+            const t = document.getElementById('prem-timer'); 
+            if(premExpiry > Date.now()) {
+                const diff = premExpiry - Date.now();
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                t.innerText = `PREMIUM: ${d} days, ${h} hours left`;
+            } else t.innerText = ""; 
+        }
 
         function doTask(t, r) { window.open("https://www.tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); tg.showAlert("Verified!"); }, 5000); }
-
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
-
         function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
     </script>
 </body>
