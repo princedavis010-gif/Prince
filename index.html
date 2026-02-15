@@ -3,184 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v118.2</title>
+    <title>Crypto_Tap v105.1</title>
     
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <meta name='admaven-placement' content='Bqjw4qHa4'>
-    <script src='https://a.pemsrv.com/admaven.js'></script>
     
     <style>
         :root { --gold: #f3ba2f; --dia: #00d2ff; --bg: #010205; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); }
         
-        /* Navigation */
-        .nav { display: flex; justify-content: space-around; background: #111; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; z-index: 100; }
-        .nav-item { cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 12px; text-align: center; }
-        .nav-item.active { opacity: 1; color: var(--gold); }
-
-        /* Container */
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 110px; }
         .container.active { display: flex; }
 
-        /* Coin Styling - Borderless */
-        .coin-wrapper { margin: 30px 0; z-index: 5; position: relative; }
+        .coin-wrapper { margin: 30px 0; z-index: 5; }
         .coin-btn { 
             width: 310px; height: 310px; border-radius: 50%; 
             transition: transform 0.1s ease-out; cursor: pointer;
             background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg');
             background-size: cover; background-position: center;
-            border: none; outline: none; box-shadow: none;
+            border: none; outline: none; box-shadow: none; /* Touched: Removed border/circle */
         }
-        .coin-btn:active { transform: scale(0.95); }
 
-        /* General Button Styling */
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 15px; border-radius: 12px; font-weight: 800; border: none; width: 100%; margin: 5px 0; cursor: pointer; text-transform: uppercase; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #221a04; color: white; }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 15px; padding: 15px; width: 100%; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 300px; margin: 15px 0; }
+        .box { height: 90px; background: #111; border: 1px solid var(--gold); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; }
+
+        .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
+        .nav-item { flex: 1; text-align: center; padding-top: 18px; color: #555; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
     </style>
 </head>
 <body onload="initApp()">
 
     <div id="home" class="container active">
         <div id="balance" style="font-size: 50px; font-weight: 900; color: var(--gold);">0</div>
-        
+        <div style="color: var(--dia); font-size: 20px; margin-bottom: 5px;">💎 <span id="diamonds">0</span></div>
         <div class="coin-wrapper">
             <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
         </div>
+        <div style="font-weight: bold;">⚡ <span id="energy">1000</span> / 1000</div>
         
-        <button class="btn-gold" onclick="showAdsgram()">📺 FREE 3,000 COINS</button>
+        <button class="btn-gold" style="margin-top: 20px;" onclick="showAdsgram()">📺 FREE 3,000 COINS</button>
         <button class="btn-gold" style="background: var(--dia);" onclick="showMonetag()">📺 FREE 3,000 COINS</button>
-        <button class="btn-gold" style="background: #6a5acd; color: white;" onclick="showAdMaven()">📺 FREE 3,000 COINS</button>
     </div>
 
-    <div id="withdraw" class="container">
-        <h2 style="color: var(--gold);">Withdraw to OPay</h2>
-        <input type="text" id="opayName" placeholder="Account Name">
-        <input type="number" id="opayNumber" placeholder="OPay Number (8123...)">
-        <input type="number" id="withdrawAmount" placeholder="Amount to Withdraw">
-        <button class="btn-gold" onclick="requestWithdrawal()">SUBMIT REQUEST</button>
-    </div>
-
-    <div id="admin" class="container">
-        <h2 style="color: #ff4444;">Admin Panel</h2>
-        <div id="adminArea" style="display:none; width: 100%;">
-            <button class="btn-gold" onclick="resetAllData()">RESET ALL SYSTEM DATA</button>
-            <div id="requestsList" style="margin-top: 20px; background: #222; padding: 10px; border-radius: 10px;"></div>
+    <div id="grid-tab" class="container">
+        <h2 style="color:var(--gold);">MYSTERY SQUARE</h2>
+        <div class="grid">
+            <div class="box" onclick="openBox(1)">?</div><div class="box" onclick="openBox(2)">?</div><div class="box" onclick="openBox(3)">?</div>
+            <div class="box" onclick="openBox(4)">?</div><div class="box" onclick="openBox(5)">?</div><div class="box" onclick="openBox(6)">?</div>
+            <div class="box" onclick="openBox(7)">?</div><div class="box" onclick="openBox(8)">?</div><div class="box" onclick="openBox(9)">?</div>
         </div>
-        <input type="password" id="adminPass" placeholder="Admin Key">
-        <button class="btn-gold" onclick="checkAdmin()">LOGIN</button>
+        <div class="glass-card"><h3>👥 REFERRAL</h3><button class="btn-gold" style="background:#a020f0; color:#fff;" onclick="share()">INVITE FRIENDS (+40,000)</button></div>
+    </div>
+
+    <div id="shop" class="container">
+        <h2 style="color:var(--gold);">BOOSTERS</h2>
+        <div class="glass-card">
+            <h3>🤖 AUTO-FARM BOT</h3>
+            <p id="bot-status" style="font-size: 12px; color: #888;">OFFLINE</p>
+            <button id="bot-btn" class="btn-gold" onclick="botAction()">BUY FOR 15,000</button>
+        </div>
+    </div>
+
+    <div id="elite" class="container">
+        <h2 style="color:var(--gold);">ELITE SHOP</h2>
+        <div class="glass-card">
+            <p style="font-size:22px;">ID: <span id="u-suffix">----</span></p>
+            <div style="background:#222; padding:10px; border-radius:10px; margin:10px 0;">OPay: 8124647818</div>
+            <button class="btn-gold" onclick="document.getElementById('file').click()">📁 UPLOAD RECEIPT</button>
+            <input type="file" id="file" style="display:none;" onchange="tg.showAlert('Uploaded!')">
+        </div>
+        <div class="glass-card" onclick="adminTrigger()"><h4>📜 RECENT ACTIVITY</h4>
+            <div id="admin-panel" style="display:none; padding-top:15px; border-top:1px solid #333;">
+                <input type="text" id="adm-s" placeholder="User Suffix" style="width:70%; padding:8px;"><br>
+                <button class="btn-gold" style="font-size:12px; width:60%;" onclick="gen()">GENERATE CODE</button>
+                <p id="res" style="color:#00ff88;"></p>
+            </div>
+        </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="switchTab('home')">🏠<br>HOME</div>
-        <div class="nav-item" onclick="switchTab('withdraw')">💰<br>CASH</div>
-        <div class="nav-item" onclick="switchTab('admin')">⚙️<br>ADMIN</div>
+        <div class="nav-item active" onclick="tab('home', this)">🪙<br>Home</div>
+        <div class="nav-item" onclick="tab('grid-tab', this)">📋<br>Grid</div>
+        <div class="nav-item" onclick="tab('shop', this)">⚡<br>Boost</div>
+        <div class="nav-item" onclick="tab('elite', this)">⭐<br>Elite</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; 
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "8888";
-        let bal = parseInt(localStorage.getItem('tap_bal')) || 0;
+        const suffix = uid.slice(-4);
+        const v = "v105_";
+
+        let bal = parseInt(localStorage.getItem(v+'bal')) || 0;
+        let dia = parseInt(localStorage.getItem(v+'dia')) || 0;
+        let eng = parseInt(localStorage.getItem(v+'eng')) || 1000;
+        let hasBot = localStorage.getItem(v+'bot') === 'true';
+        let botUntil = parseInt(localStorage.getItem(v+'botT')) || 0;
 
         const Adsgram = window.Adsgram.init({ blockId: "22672" });
 
         function initApp() {
             updateUI();
             tg.expand();
-            tg.ready();
+            setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2500);
+            setInterval(() => { if(hasBot && Date.now() < botUntil) { bal += 10; updateUI(); } }, 4000);
+            if(typeof show_10611291 === 'function') { show_10611291({ type: 'preload', telegram_id: uid }); }
         }
 
-        // --- REWARD LOGIC (SILENT) ---
-        function giveReward() {
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            bal += 3000;
-            updateUI();
-        }
-
-        // --- AD FUNCTIONS ---
         function showAdsgram() {
-            Adsgram.show().then(giveReward).catch(() => {});
+            Adsgram.show().then(() => { bal += 3000; updateUI(); tg.showAlert("Success!"); }).catch(() => {});
         }
 
         async function showMonetag() {
             if (typeof show_10611291 === 'function') {
-                const res = await show_10611291({ telegram_id: uid });
-                if (res && res.reward_event_type === 'valued') giveReward();
+                try {
+                    const res = await show_10611291({ telegram_id: uid });
+                    if (res && res.reward_event_type === 'valued') {
+                        bal += 3000; updateUI(); tg.showAlert("Success!");
+                    } else { tg.showAlert("Verification failed."); }
+                } catch (e) { tg.showAlert("Ad closed early."); }
             }
         }
 
-        function showAdMaven() {
-            if (window.AdMaven && typeof window.AdMaven.show === 'function') {
-                window.AdMaven.show({
-                    placementId: 'Bqjw4qHa4',
-                    onCompleted: giveReward,
-                    onClosed: () => console.log("Ad finished.")
-                });
-            }
-            // NO ALERT HERE - Silent as requested
-        }
-
-        // --- CORE GAME LOGIC ---
         function handleTap(e) {
-            e.preventDefault();
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            bal++;
+            if(eng <= 0) return;
+            bal++; eng--;
+            const r = document.getElementById('coin').getBoundingClientRect();
+            const t = e.changedTouches ? e.changedTouches[0] : e;
+            const x = ((t.clientX - (r.left + r.width/2)) / (r.width/2)) * 15;
+            document.getElementById('coin').style.transform = `rotateY(${x}deg) scale(0.98)`;
+            setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) scale(1)", 80);
             updateUI();
+        }
+
+        function openBox(n) {
+            if(n === 1 || n === 9) { tg.showAlert("Empty!"); } 
+            else { bal += 200; updateUI(); tg.showAlert("Winner!"); }
+        }
+
+        function botAction() {
+            const now = Date.now();
+            if(!hasBot) { if(bal >= 15000) { bal -= 15000; hasBot = true; updateUI(); } } 
+            else if(now > botUntil) {
+                botUntil = now + (12 * 60 * 60 * 1000);
+                tg.showAlert("You have successfully reactivate your auto farming bot. Good job! 🎉");
+                updateUI();
+            }
         }
 
         function updateUI() {
             document.getElementById('balance').innerText = bal.toLocaleString();
-            localStorage.setItem('tap_bal', bal);
+            document.getElementById('diamonds').innerText = dia;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('u-suffix').innerText = suffix;
+            const bBtn = document.getElementById('bot-btn');
+            if(!hasBot) bBtn.innerText = "BUY FOR 15,000";
+            else if(Date.now() > botUntil) { bBtn.innerText = "ACTIVATE"; bBtn.style.background = "#00ff88"; }
+            else { bBtn.innerText = "FARMING..."; bBtn.style.background = "#444"; }
+            localStorage.setItem(v+'bal', bal);
+            localStorage.setItem(v+'dia', dia);
+            localStorage.setItem(v+'eng', eng);
+            localStorage.setItem(v+'bot', hasBot);
+            localStorage.setItem(v+'botT', botUntil);
         }
 
-        function switchTab(id) {
+        function tab(t, el) {
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.getElementById(t).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+            el.classList.add('active');
         }
 
-        // --- ADMIN & WITHDRAWAL ---
-        function requestWithdrawal() {
-            const name = document.getElementById('opayName').value;
-            const num = document.getElementById('opayNumber').value;
-            const amt = document.getElementById('withdrawAmount').value;
-            if(!name || !num || !amt) return tg.showAlert("Fill all fields");
-            
-            const req = { name, num, amt, uid, status: 'Pending' };
-            let logs = JSON.parse(localStorage.getItem('tx_logs')) || [];
-            logs.push(req);
-            localStorage.setItem('tx_logs', JSON.stringify(logs));
-            tg.showAlert("Request Sent to Admin!");
+        let cl = 0; function adminTrigger() { cl++; if(cl===3) { if(prompt("Pass:")==="DavisAdmin2026") document.getElementById('admin-panel').style.display='block'; cl=0; } }
+        function gen() { 
+            const s = document.getElementById('adm-s').value; 
+            document.getElementById('res').innerText = `DVS-${(parseInt(s)+777).toString(16).toUpperCase()}-${s}`; 
         }
-
-        function checkAdmin() {
-            if(document.getElementById('adminPass').value === "PRINCE") {
-                document.getElementById('adminArea').style.display = "block";
-                loadRequests();
-            }
-        }
-
-        function loadRequests() {
-            const logs = JSON.parse(localStorage.getItem('tx_logs')) || [];
-            const div = document.getElementById('requestsList');
-            div.innerHTML = logs.map((r, i) => `
-                <div style="border-bottom: 1px solid #444; padding: 10px;">
-                    ${r.name} - ${r.amt} Coins<br>${r.num}<br>
-                    <button onclick="deleteReq(${i})">PAID/DELETE</button>
-                </div>
-            `).join('');
-        }
-
-        function deleteReq(i) {
-            let logs = JSON.parse(localStorage.getItem('tx_logs'));
-            logs.splice(i, 1);
-            localStorage.setItem('tx_logs', JSON.stringify(logs));
-            loadRequests();
-        }
+        function share() { tg.showAlert("Link Copied!"); }
     </script>
 </body>
 </html>
