@@ -235,7 +235,6 @@
                     bal += 3000; updateUI(); tg.showAlert("Rewarded! +3,000 Coins");
                 }
             } else {
-                // If SDK fails, use direct link to trigger event
                 tg.openLink('https://libtl.com/sdk.js?zone=10611291');
                 setTimeout(() => { bal += 3000; updateUI(); }, 2000);
             }
@@ -277,8 +276,17 @@
 
         async function requestRedeem() {
             if (dia >= 1) {
-                let ph = localStorage.getItem(v + 'phone_' + uid) || prompt("Phone Number:");
-                if (!ph || ph.length < 10) return; localStorage.setItem(v + 'phone_' + uid, ph);
+                let ph = localStorage.getItem(v + 'phone_' + uid);
+                if (ph) {
+                    const keep = confirm(`Redeem using ${ph}?`);
+                    if (!keep) ph = prompt("Enter new Phone Number:");
+                } else {
+                    ph = prompt("Phone Number:");
+                }
+                
+                if (!ph || ph.length < 10) return; 
+                localStorage.setItem(v + 'phone_' + uid, ph);
+                
                 const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
                 try {
                     const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
