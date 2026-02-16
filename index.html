@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v63.3 COMPLETE</title>
+    <title>Crypto_Tap v63.3 Master</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -13,21 +13,35 @@
         :root { --gold: #f3ba2f; --green: #00ff88; --dia: #00d2ff; --purple: #a020f0; --bg: #010205; }
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
-        .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
-        .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        
+        /* Lightning Effect for Warp Boost */
+        body.boost-active { 
+            background: radial-gradient(circle, #1a0033 0%, #010205 100%);
+            animation: lightning-flash 2s infinite;
+        }
+        @keyframes lightning-flash {
+            0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); }
+            50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); }
+        }
+
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
+        
+        .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); margin: 30px 0; }
+        
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
         .btn-active-grey { background: #555 !important; color: #888 !important; cursor: default !important; }
+        
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
+
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
+        
         #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
         .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
-        .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; }
     </style>
 </head>
 
@@ -36,19 +50,31 @@
 
     <div id="home" class="container active">
         <div class="bal-container">
-            <div class="bal-coin"></div>
             <span id="balance">0</span>
         </div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
         <div id="prem-timer" style="color:var(--green); font-weight:bold; font-size:12px; height:15px; margin-top:5px;"></div>
         
-        <div class="coin-wrapper">
-            <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
-        </div>
+        <div class="coin-btn" onpointerdown="handleTap(event)"></div>
+        
+        <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
         <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
         
         <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
         <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+    </div>
+
+    <div id="tasks" class="container">
+        <h2 style="color:var(--gold);">TASKS</h2>
+        <div class="glass-card" style="border: 1px solid var(--purple);">
+            <h3>👥 INVITE FRIENDS</h3>
+            <p>Earn 10,000 coins for every friend!</p>
+            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="shareInvite()">INVITE FRIENDS</button>
+        </div>
+        <div class="glass-card">
+            <p>Follow TikTok @ogprincedavis5081</p>
+            <button class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask(5000)">LIKE/COMMENT (+5,000)</button>
+        </div>
     </div>
 
     <div id="shop" class="container">
@@ -57,20 +83,30 @@
             <h3>🤖 AUTO-TAP BOT</h3>
             <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">ACTIVATE FOR FREE</button>
         </div>
+        <div class="glass-card">
+            <h3>⚡ WARP BOOST (5X)</h3>
+            <p>Daily Uses: <span id="boost-count">2</span>/2</p>
+            <button id="boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE WARP</button>
+        </div>
     </div>
 
     <div id="premium" class="container">
         <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
         <div class="glass-card">
             <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
+            <p>Premium Sub (20x Tap) | ₦200</p>
+            <p style="color:var(--green);">OPay: <b>8124647818</b></p>
             <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
             <button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
         </div>
+        
         <div class="glass-card" style="margin-top:20px;">
             <h4 id="admin-trigger" onclick="handleAdminTap()" style="cursor:pointer;">📜 RECENT ACTIVITY</h4>
+            <div id="tx-history" style="font-size:11px; color:#999; text-align:left; max-height:100px; overflow-y:auto;">No recent activity.</div>
+            
             <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444; padding-top:10px;">
-                <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff; height:35px;" placeholder="Suffix">
-                <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff; height:35px;" placeholder="Salt">
+                <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; height:35px; width:48%; display:inline-block;" placeholder="Suffix">
+                <input type="number" id="adm-salt" class="btn-gold" style="background:#333; height:35px; width:48%; display:inline-block;" placeholder="Salt">
                 <button class="btn-gold" onclick="generateAdminCode()">GENERATE CODE</button>
                 <p id="gen-result" style="color:var(--green); font-weight:bold;"></p>
             </div>
@@ -79,6 +115,7 @@
 
     <div class="nav">
         <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
+        <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
         <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Boost</div>
         <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
     </div>
@@ -90,31 +127,39 @@
         const v = "v3_";
         const secretKey = 777;
         
-        let bal = parseInt(localStorage.getItem(v + 'bal_' + uid)) || 0;
-        let dia = parseInt(localStorage.getItem(v + 'dia_' + uid)) || 0;
-        let salt = parseInt(localStorage.getItem(v + 'salt_' + uid)) || 1;
-        let adThreshold = parseInt(localStorage.getItem(v + 'adT_' + uid)) || 0;
-        let premExpiry = parseInt(localStorage.getItem(v + 'premExp_' + uid)) || 0;
-        let hasBot = localStorage.getItem(v + 'bot_' + uid) === 'true';
-        let botExpiry = parseInt(localStorage.getItem(v + 'botExp_' + uid)) || 0;
+        let bal = parseInt(localStorage.getItem(v+'bal_'+uid)) || 0;
+        let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
+        let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
+        let adThreshold = parseInt(localStorage.getItem(v+'adT_'+uid)) || 0;
+        let premExpiry = parseInt(localStorage.getItem(v+'premE_'+uid)) || 0;
+        let boosts = parseInt(localStorage.getItem(v+'bstC_'+uid)) || 2;
+        let lastBoostDay = localStorage.getItem(v+'bstD_'+uid) || "";
+        let hasBot = localStorage.getItem(v+'bot_'+uid) === 'true';
+        let botExp = parseInt(localStorage.getItem(v+'botEx_'+uid)) || 0;
+        let txs = JSON.parse(localStorage.getItem(v+'txs_'+uid)) || [];
         let eng = 1000;
+        let isBoosted = false;
 
         const AdController = window.Adsgram.init({ blockId: "22672" });
 
-        function initApp() { updateUI(); if (hasBot) startBot(); setInterval(checkPremiumExpiry, 1000); }
+        function initApp() {
+            const today = new Date().toDateString();
+            if (lastBoostDay !== today) { boosts = 2; localStorage.setItem(v+'bstC_'+uid, 2); localStorage.setItem(v+'bstD_'+uid, today); }
+            updateUI(); if (hasBot) startBot(); setInterval(checkPremiumExpiry, 1000);
+        }
 
         function handleTap(e) {
             e.preventDefault();
             if (eng <= 0) return;
             const t = e.changedTouches ? e.changedTouches[0] : e;
-            let val = (premExpiry > Date.now() ? 20 : 1);
-            bal += val; adThreshold += val; eng--;
+            let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
             
-            localStorage.setItem(v + 'bal_' + uid, bal);
-            localStorage.setItem(v + 'adT_' + uid, adThreshold);
+            bal += val; adThreshold += val; eng--;
+            localStorage.setItem(v+'bal_'+uid, bal);
+            localStorage.setItem(v+'adT_'+uid, adThreshold);
 
             if (adThreshold >= 5000) { 
-                adThreshold = 0; localStorage.setItem(v + 'adT_' + uid, 0);
+                adThreshold = 0; localStorage.setItem(v+'adT_'+uid, 0);
                 AdController.show().then(() => { bal += 500; updateUI(); }); 
             }
 
@@ -143,22 +188,38 @@
             }
         }
 
+        function activateBoost() {
+            if (boosts > 0 && !isBoosted) {
+                boosts--; isBoosted = true;
+                localStorage.setItem(v+'bstC_'+uid, boosts);
+                document.body.classList.add('boost-active');
+                let left = 30;
+                const bt = setInterval(() => {
+                    left--; document.getElementById('boost-timer').innerText = `WARP: ${left}s`;
+                    if(left <= 0) { clearInterval(bt); isBoosted = false; document.body.classList.remove('boost-active'); document.getElementById('boost-timer').innerText = ""; updateUI(); }
+                }, 1000);
+                updateUI();
+            }
+        }
+
         function buyBot() {
-            hasBot = true; botExpiry = Date.now() + (12 * 60 * 60 * 1000);
-            localStorage.setItem(v + 'bot_' + uid, true);
-            localStorage.setItem(v + 'botExp_' + uid, botExpiry);
+            hasBot = true; botExp = Date.now() + (12 * 60 * 60 * 1000);
+            localStorage.setItem(v+'bot_'+uid, true);
+            localStorage.setItem(v+'botEx_'+uid, botExp);
             startBot(); updateUI();
         }
 
-        function startBot() { setInterval(() => { if (botExpiry > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); }
+        function startBot() { setInterval(() => { if (botExp > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); }
 
         function activatePremium() {
             const p1 = (parseInt(suffix) + secretKey).toString(16);
             const p2 = (parseInt(salt) * 157).toString(16);
             if (document.getElementById('code-input').value.trim() === `DVS-${p1}-${p2}-${suffix}`) {
                 premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++;
-                localStorage.setItem(v + 'premExp_' + uid, premExpiry);
-                localStorage.setItem(v + 'salt_' + uid, salt);
+                localStorage.setItem(v+'premE_'+uid, premExpiry);
+                localStorage.setItem(v+'salt_'+uid, salt);
+                txs.unshift({d: new Date().toLocaleDateString(), s: "PREMIUM ACTIVATED"});
+                localStorage.setItem(v+'txs_'+uid, JSON.stringify(txs));
                 updateUI(); tg.showAlert("Premium Active!");
             }
         }
@@ -168,22 +229,28 @@
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('p-suffix').innerText = suffix;
             document.getElementById('energy').innerText = eng;
+            document.getElementById('boost-count').innerText = boosts;
+            document.getElementById('tx-history').innerHTML = txs.map(x => `<div>[${x.d}] ${x.s}</div>`).join('') || "No recent activity.";
             const bBtn = document.getElementById('bot-purchase-btn');
-            if (hasBot && botExpiry > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; }
+            if (hasBot && botExp > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; }
         }
 
         function checkPremiumExpiry() {
             const t = document.getElementById('prem-timer');
             if(premExpiry > Date.now()) {
                 const diff = premExpiry - Date.now();
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
                 t.innerText = `PREMIUM: ${d}d ${h}h left`;
             } else t.innerText = "";
         }
 
+        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/crypt7tapbot?startapp=${uid}&text=Join Crypto_Tap and earn!`); }
+        function doTask(r) { window.open("https://tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); }, 5000); }
+        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
+        
         let adminTaps = 0;
-        function handleAdminTap() { adminTaps++; if (adminTaps === 3) { if (prompt("Pass:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; adminTaps = 0; } setTimeout(() => adminTaps = 0, 2000); }
+        function handleAdminTap() { adminTaps++; if (adminTaps === 3) { if (prompt("Password:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; adminTaps = 0; } setTimeout(() => adminTaps = 0, 2000); }
         function generateAdminCode() {
             const sfx = document.getElementById('adm-suffix').value;
             const slt = document.getElementById('adm-salt').value;
@@ -191,7 +258,6 @@
             const p2 = (parseInt(slt) * 157).toString(16);
             document.getElementById('gen-result').innerText = `DVS-${p1}-${p2}-${sfx}`;
         }
-        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
     </script>
 </body>
 </html>
