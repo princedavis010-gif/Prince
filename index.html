@@ -23,29 +23,19 @@
             50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); }
         }
 
-        .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
+        .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; transition: opacity 0.5s ease; }
         .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
         .coin-btn::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; transform: translateZ(-18px); background: #2c2105; box-shadow: inset 0 0 20px black; }
         
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.4s ease; }
         
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
-        .btn-active-grey { background: #555 !important; color: #888 !important; cursor: pointer !important; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; transition: opacity 0.5s ease, background 0.3s; }
+        .btn-active-grey { background: #555 !important; color: #888 !important; cursor: not-allowed !important; }
         
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
-
-        .flying-coin {
-            position: fixed;
-            width: 25px; height: 25px;
-            background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;
-            border-radius: 50%;
-            z-index: 9999;
-            pointer-events: none;
-            transition: all 0.8s cubic-bezier(0.1, 0.7, 0.1, 1);
-        }
 
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
@@ -56,6 +46,9 @@
         
         .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
         .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; transition: 0.1s; }
+        
+        /* New Refill Layout Style */
+        #refill-wrap { display: none; opacity: 0; transition: opacity 0.5s; width: 100%; flex-direction: column; align-items: center; }
     </style>
 </head>
 
@@ -74,15 +67,23 @@
         </div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
         <div id="prem-timer" style="color:var(--green); font-weight:bold; font-size:12px; height:15px;"></div>
-        <div class="coin-wrapper">
-            <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
-        </div>
-        <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
-        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
         
-        <button class="btn-gold" style="background: var(--green); color:#000;" onclick="refillEnergyAd()">📺 WATCH AD TO REFILL ENERGY</button>
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
-        <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+        <div id="main-tap-ui" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div class="coin-wrapper" id="coin-wrap">
+                <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
+            </div>
+            <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
+            <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
+        </div>
+
+        <div id="refill-wrap">
+             <button class="btn-gold" style="background: var(--green); color:#000; margin-bottom:15px;" onclick="refillEnergyAd()">📺 REFILL WITH MAX ENERGY</button>
+        </div>
+
+        <div id="adsgram-area" style="width:100%;">
+            <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
+            <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+        </div>
     </div>
 
     <div id="tasks" class="container">
@@ -125,7 +126,9 @@
             <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
             <button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
         </div>
-        <button class="btn-gold" style="background:var(--dia); color:#000;" id="redeem-btn" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
+        
+        <button class="btn-gold" id="redeem-btn" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
+        
         <div class="glass-card" style="margin-top:20px;">
             <h4 id="admin-trigger" onclick="handleAdminTap()" style="cursor:pointer;">📜 RECENT ACTIVITY</h4>
             <div id="tx-history" class="tx-list">No recent requests.</div>
@@ -135,10 +138,6 @@
                 <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Salt">
                 <button class="btn-gold" style="height:35px;" onclick="generateAdminCode()">GENERATE CODE</button>
                 <p id="gen-result" style="color:var(--green); font-size:14px; font-weight:bold; margin:10px 0;"></p>
-                <p style="color:var(--gold); font-size:10px; font-weight:bold; margin-top:10px;">MESSAGE USER</p>
-                <input type="text" id="msg-uid" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="User ID">
-                <textarea id="msg-text" class="btn-gold" style="background:#333; color:#fff; height:50px; border:1px solid #555;" placeholder="Message..."></textarea>
-                <button class="btn-gold" style="background:var(--dia); color:#000; height:35px;" onclick="sendDirectMessage()">SEND MESSAGE</button>
             </div>
         </div>
     </div>
@@ -167,18 +166,8 @@
         let premExpiry = parseInt(localStorage.getItem(v + 'premExp_' + uid)) || 0;
         let lastVisit = parseInt(localStorage.getItem(v + 'lastVis_' + uid)) || Date.now();
         let txs = JSON.parse(localStorage.getItem(v + 'txs_' + uid)) || [];
-        let boosts = parseInt(localStorage.getItem(v + 'boosts_' + uid));
-        if (isNaN(boosts)) boosts = 2;
-        
-        // Persistent Energy Logic: Don't default to 1000, check storage first
+        let boosts = parseInt(localStorage.getItem(v + 'boosts_' + uid)) || 2;
         let eng = localStorage.getItem(v + 'eng_' + uid) !== null ? parseInt(localStorage.getItem(v + 'eng_' + uid)) : 1000;
-        
-        let lastResetDate = localStorage.getItem(v + 'lastResetDate_' + uid);
-        const now = new Date();
-        const resetPoint = new Date();
-        resetPoint.setHours(3, 0, 0, 0);
-        const todayStr = now.toISOString().split('T')[0];
-        if (now >= resetPoint && lastResetDate !== todayStr) { boosts = 2; localStorage.setItem(v + 'lastResetDate_' + uid, todayStr); }
         
         let adThreshold = 0;
         let isBoosted = false;
@@ -189,60 +178,126 @@
             updateUI(); 
             if (hasBot) startBot(); 
             setInterval(checkPremiumExpiry, 1000); 
-            // Slow natural energy regen
-            setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2000);
+            setInterval(() => { if(eng < 1000 && !isBoosted) { eng++; updateUI(); } }, 2000);
         }
 
-        function generateComplexCode(sfx, slt) { const p1 = (parseInt(sfx) + secretKey).toString(16); const p2 = (parseInt(slt) * 157).toString(16); return `DVS-${p1}-${p2}-${sfx}`; }
-        let adminTaps = 0;
-
-        function handleAdminTap() { adminTaps++; if (adminTaps === 3) { if (prompt("Admin Password:") === "DavisAdmin2026") { document.getElementById('admin-box').style.display = 'block'; tg.showAlert("Access Granted."); } adminTaps = 0; } setTimeout(() => adminTaps = 0, 2000); }
-
-        function generateAdminCode() { const sfx = document.getElementById('adm-suffix').value; const slt = document.getElementById('adm-salt').value; if (sfx.length === 4 && slt) { const c = generateComplexCode(sfx, slt); document.getElementById('gen-result').innerText = c; navigator.clipboard.writeText(c); tg.showAlert("Code Copied!"); } }
-        async function sendDirectMessage() { const target = document.getElementById('msg-uid').value; const t = document.getElementById('msg-text').value; try { const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: target, text: t }) }); if (r.ok) { tg.showAlert("Message Sent!"); document.getElementById('msg-text').value = ""; } } catch (e) { } }
-
-        // MULTI-TOUCH FIX: Process all fingers
         function handleTap(e) {
             e.preventDefault();
             const touches = e.changedTouches ? Array.from(e.changedTouches) : [e];
-            
             touches.forEach(t => {
                 if (eng > 0) {
                     let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
-                    bal += val; if (!isBoosted) adThreshold += val; eng--;
+                    bal += val; adThreshold += val; eng--;
                     
+                    // Tap effect logic
                     const valEl = document.createElement('div');
                     valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
                     valEl.style.left = t.clientX + 'px'; valEl.style.top = t.clientY + 'px';
                     document.body.appendChild(valEl);
                     setTimeout(() => valEl.remove(), 800);
 
-                    const fCoin = document.createElement('div');
-                    fCoin.className = 'flying-coin';
-                    fCoin.style.left = t.clientX + 'px'; fCoin.style.top = t.clientY + 'px';
-                    document.body.appendChild(fCoin);
-                    
-                    const target = document.getElementById('bal-icon').getBoundingClientRect();
-                    setTimeout(() => {
-                        fCoin.style.left = (target.left + target.width/2) + 'px';
-                        fCoin.style.top = (target.top + target.height/2) + 'px';
-                        fCoin.style.transform = "scale(0.2)"; fCoin.style.opacity = "0";
-                    }, 50);
-                    setTimeout(() => { fCoin.remove(); }, 800);
-
-                    const rect = document.getElementById('coin').getBoundingClientRect();
-                    const rotateY = ((t.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 20;
-                    const rotateX = -((t.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * 20;
-                    document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-                    setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
-                    
-                    if (adThreshold >= 5000) { adThreshold = 0; AdController.show().then(() => { bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins."); }); }
+                    // Adsgram 5000 logic
+                    if (adThreshold >= 5000) { 
+                        adThreshold = 0; 
+                        AdController.show().then(() => { bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins."); }); 
+                    }
                 }
             });
             updateUI();
         }
 
-        // MONETAG REFILL AD
+        function updateUI() {
+            // Auto Diamond Conversion
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
+            
+            document.getElementById('balance').innerText = bal.toLocaleString();
+            document.getElementById('diamonds').innerText = dia;
+            document.getElementById('p-suffix').innerText = suffix;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('boost-count').innerText = boosts;
+
+            // REDEEM BUTTON LOGIC (Gray if 0 diamonds)
+            const rBtn = document.getElementById('redeem-btn');
+            if (dia < 1) {
+                rBtn.classList.add('btn-active-grey');
+            } else {
+                rBtn.classList.remove('btn-active-grey');
+            }
+
+            // ENERGY < 20 FADE LOGIC
+            const mainTapUi = document.getElementById('main-tap-ui');
+            const refillWrap = document.getElementById('refill-wrap');
+            if (eng < 20) {
+                mainTapUi.style.opacity = "0";
+                mainTapUi.style.pointerEvents = "none";
+                refillWrap.style.display = "flex";
+                setTimeout(() => refillWrap.style.opacity = "1", 50);
+            } else {
+                mainTapUi.style.opacity = "1";
+                mainTapUi.style.pointerEvents = "auto";
+                refillWrap.style.opacity = "0";
+                setTimeout(() => refillWrap.style.display = "none", 500);
+            }
+
+            localStorage.setItem(v + 'bal_' + uid, bal);
+            localStorage.setItem(v + 'dia_' + uid, dia);
+            localStorage.setItem(v + 'eng_' + uid, eng);
+            localStorage.setItem(v + 'bot_' + uid, hasBot);
+            localStorage.setItem(v + 'botExp_' + uid, botExpiry);
+            localStorage.setItem(v + 'boosts_' + uid, boosts);
+            localStorage.setItem(v + 'txs_' + uid, JSON.stringify(txs));
+
+            const hEl = document.getElementById('tx-history');
+            if (txs.length > 0) hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
+        }
+
+        async function requestRedeem() {
+            if (dia < 1) {
+                tg.showAlert("You need 50,000 coins to get a Diamond for redemption!");
+                return;
+            }
+
+            let ph = localStorage.getItem(v + 'phone_' + uid);
+            
+            // BRAIN LOGIC: If no number, ask. If number exists, show Button A (Use Saved) / Button B (Enter New)
+            if (!ph) {
+                ph = prompt("Please enter your Phone Number to receive ₦100 Airtime:");
+                if (!ph || ph.length < 10) return;
+                localStorage.setItem(v + 'phone_' + uid, ph);
+                sendRedeemToAdmin(ph);
+            } else {
+                // Return User selection
+                const choice = confirm(`Redeem to saved number: ${ph}?\n\n(Click CANCEL to enter a NEW number)`);
+                if (choice) {
+                    sendRedeemToAdmin(ph);
+                } else {
+                    const newPh = prompt("Enter NEW Phone Number:");
+                    if (newPh && newPh.length >= 10) {
+                        localStorage.setItem(v + 'phone_' + uid, newPh);
+                        sendRedeemToAdmin(newPh);
+                    }
+                }
+            }
+        }
+
+        async function sendRedeemToAdmin(phoneNumber) {
+            const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${phoneNumber}\n👤 User: ${uid}`;
+            try {
+                const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ chat_id: chatId, text: m }) 
+                });
+                if (r.ok) { 
+                    dia--; 
+                    txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Request Sent" }); 
+                    updateUI(); 
+                    tg.showAlert("Redeem Sent! ₦100 Airtime coming soon."); 
+                }
+            } catch (e) { tg.showAlert("Error connecting to server."); }
+        }
+
+        // MONETAG REFILL AD (REFILL WITH MAX ENERGY)
         async function refillEnergyAd() {
             if (typeof show_10611291 === 'function') {
                 const res = await show_10611291({ telegram_id: uid });
@@ -255,112 +310,42 @@
             }
         }
 
+        // REST OF YOUR EXISTING FUNCTIONS (Bot, Boost, Admin, etc.)
+        function generateComplexCode(sfx, slt) { const p1 = (parseInt(sfx) + secretKey).toString(16); const p2 = (parseInt(slt) * 157).toString(16); return `DVS-${p1}-${p2}-${sfx}`; }
+        let adminTaps = 0;
+        function handleAdminTap() { adminTaps++; if (adminTaps === 3) { if (prompt("Admin Password:") === "DavisAdmin2026") { document.getElementById('admin-box').style.display = 'block'; tg.showAlert("Access Granted."); } adminTaps = 0; } setTimeout(() => adminTaps = 0, 2000); }
+        function generateAdminCode() { const sfx = document.getElementById('adm-suffix').value; const slt = document.getElementById('adm-salt').value; if (sfx.length === 4 && slt) { const c = generateComplexCode(sfx, slt); document.getElementById('gen-result').innerText = c; navigator.clipboard.writeText(c); tg.showAlert("Code Copied!"); } }
         async function showMonetag() {
             if (typeof show_10611291 === 'function') {
                 const res = await show_10611291({ telegram_id: uid });
-                if (res && res.reward_event_type === 'valued') {
-                    bal += 3000; updateUI(); tg.showAlert("Rewarded! +3,000 Coins");
-                }
-            } else {
-                tg.openLink('https://libtl.com/sdk.js?zone=10611291');
-                setTimeout(() => { bal += 3000; updateUI(); }, 2000);
-            }
+                if (res && res.reward_event_type === 'valued') { bal += 3000; updateUI(); tg.showAlert("Rewarded! +3,000 Coins"); }
+            } else { tg.openLink('https://libtl.com/sdk.js?zone=10611291'); setTimeout(() => { bal += 3000; updateUI(); }, 2000); }
         }
-
         async function uploadReceipt() {
             const fileInput = document.getElementById('receipt-upload');
             if (!fileInput.files || fileInput.files.length === 0) return;
             const f = fileInput.files[0]; const status = document.getElementById('upload-status');
-            status.innerText = "SENDING TO ADMIN...";
+            status.innerText = "SENDING...";
             const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f);
             fd.append('caption', `🧾 PREMIUM RECEIPT\n🆔 Suffix: ${suffix}\n👤 UID: ${uid}`);
             try {
                 const r = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
-                if (r.ok) { tg.showAlert("Sent! Verification pending."); status.innerText = "✅ Receipt Sent!"; } else { tg.showAlert("Failed to send."); status.innerText = "Upload failed."; }
-            } catch (e) { tg.showAlert("Error."); status.innerText = "Error."; } finally { fileInput.value = ""; }
+                if (r.ok) { tg.showAlert("Sent!"); status.innerText = "✅ Sent!"; }
+            } catch (e) { status.innerText = "Error."; } finally { fileInput.value = ""; }
         }
-
-        function updateUI() {
-            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
-            document.getElementById('balance').innerText = bal.toLocaleString();
-            document.getElementById('diamonds').innerText = dia;
-            document.getElementById('p-suffix').innerText = suffix;
-            document.getElementById('energy').innerText = eng;
-            document.getElementById('boost-count').innerText = boosts;
-            
-            const bBtn = document.getElementById('bot-purchase-btn');
-            if (hasBot && botExpiry > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; } else { hasBot = false; bBtn.innerText = "ACTIVATE"; bBtn.className = "btn-gold"; }
-            
-            const pBtn = document.getElementById('activate-btn');
-            if (premExpiry > Date.now()) { pBtn.innerText = "SUBSCRIBED"; pBtn.className = "btn-gold btn-active-grey"; } else { pBtn.innerText = "ACTIVATE PREMIUM"; pBtn.className = "btn-gold"; }
-            
-            localStorage.setItem(v + 'bal_' + uid, bal);
-            localStorage.setItem(v + 'dia_' + uid, dia);
-            localStorage.setItem(v + 'eng_' + uid, eng); // Saving Energy Persistence
-            localStorage.setItem(v + 'bot_' + uid, hasBot);
-            localStorage.setItem(v + 'botExp_' + uid, botExpiry);
-            localStorage.setItem(v + 'boosts_' + uid, boosts);
-            localStorage.setItem(v + 'txs_' + uid, JSON.stringify(txs));
-            const hEl = document.getElementById('tx-history');
-            if (txs.length > 0) hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
-        }
-
-        async function requestRedeem() {
-            if (dia >= 1) {
-                let ph = localStorage.getItem(v + 'phone_' + uid) || prompt("Phone Number:");
-                if (!ph || ph.length < 10) return; 
-                localStorage.setItem(v + 'phone_' + uid, ph);
-                const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
-                try {
-                    const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
-                    if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Request Sent" }); updateUI(); tg.showAlert("Sent!"); }
-                } catch (e) { }
-            }
-        }
-
-        function buyBot() {
-            const n = Date.now();
-            if (!hasBot || botExpiry <= n) { hasBot = true; botExpiry = n + (12 * 60 * 60 * 1000); startBot(); updateUI(); tg.showAlert("Auto Tap Bot Activated"); }
-        }
-
+        function buyBot() { const n = Date.now(); if (!hasBot || botExpiry <= n) { hasBot = true; botExpiry = n + (12 * 60 * 60 * 1000); startBot(); updateUI(); tg.showAlert("Bot Activated"); } }
         function startBot() { if (hasBot) setInterval(() => { if (botExpiry > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); }
         function activatePremium() { if (document.getElementById('code-input').value.trim() === generateComplexCode(suffix, salt)) { premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++; updateUI(); tg.showAlert("Elite Activated!"); document.getElementById('code-input').value = ""; } }
-
-        function activateBoost() { 
-            if (boosts > 0 && !isBoosted) { 
-                boosts--; isBoosted = true; 
-                document.body.classList.add('boost-active');
-                updateUI(); showTab('home', document.querySelectorAll('.nav-item')[0]); 
-                setTimeout(() => { isBoosted = false; document.body.classList.remove('boost-active'); updateUI(); }, 20000); 
-            } 
-        }
-
-        function showDoubleAd() {
-            AdController.show().then(() => {
-                let w = 7; document.getElementById('ad-countdown').style.display = 'block';
-                const t = setInterval(() => {
-                    w--; document.getElementById('ad-timer-val').innerText = w;
-                    if (w <= 0) { clearInterval(t); document.getElementById('ad-countdown').style.display = 'none'; AdController.show().then(() => { bal += 3000; updateUI(); tg.showAlert("Rewarded!"); }); }
-                }, 1000);
-            });
-        }
-
-        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/crypt7tapbot/prince?startapp=' + uid)}&text=Join me on Crypto_Tap!`); }
+        function activateBoost() { if (boosts > 0 && !isBoosted) { boosts--; isBoosted = true; document.body.classList.add('boost-active'); updateUI(); showTab('home', document.querySelectorAll('.nav-item')[0]); setTimeout(() => { isBoosted = false; document.body.classList.remove('boost-active'); updateUI(); }, 20000); } }
+        function showDoubleAd() { AdController.show().then(() => { let w = 7; document.getElementById('ad-countdown').style.display = 'block'; const t = setInterval(() => { w--; document.getElementById('ad-timer-val').innerText = w; if (w <= 0) { clearInterval(t); document.getElementById('ad-countdown').style.display = 'none'; AdController.show().then(() => { bal += 3000; updateUI(); tg.showAlert("Rewarded!"); }); } }, 1000); }); }
+        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/crypt7tapbot/prince?startapp=' + uid)}&text=Join Crypto_Tap!`); }
         function checkAwayEarnings() {
-            if (hasBot && botExpiry > Date.now()) {
-                const d = Math.floor((Date.now() - lastVisit) / 1000);
-                if (d > 10) { const earned = Math.floor(Math.min(d / 3, 5000)); bal += earned; document.getElementById('bot-modal').style.display = 'block'; document.getElementById('bot-earned-msg').innerText = `Bot earned ${earned.toLocaleString()} coins!`; }
-            }
+            if (hasBot && botExpiry > Date.now()) { const d = Math.floor((Date.now() - lastVisit) / 1000); if (d > 10) { const earned = Math.floor(Math.min(d / 3, 5000)); bal += earned; document.getElementById('bot-modal').style.display = 'block'; document.getElementById('bot-earned-msg').innerText = `Bot earned ${earned.toLocaleString()} coins!`; } }
             localStorage.setItem(v + 'lastVis_' + uid, Date.now());
         }
         function checkPremiumExpiry() { 
             const t = document.getElementById('prem-timer'); 
-            if(premExpiry > Date.now()) {
-                const diff = premExpiry - Date.now();
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                t.innerText = `PREMIUM: ${d}d, ${h}h left`;
-            } else t.innerText = ""; 
+            if(premExpiry > Date.now()) { const diff = premExpiry - Date.now(); const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); t.innerText = `PREMIUM: ${d}d, ${h}h left`; } else t.innerText = ""; 
         }
         function doTask(t, r) { window.open("https://www.tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); tg.showAlert("Verified!"); }, 5000); }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
@@ -368,4 +353,3 @@
     </script>
 </body>
 </html>
-
