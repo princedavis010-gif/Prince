@@ -14,34 +14,31 @@
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
         
-        /* Lightning/Warp Effect */
-        body.boost-active { background: radial-gradient(circle, #1a0033 0%, #010205 100%); animation: flash 2s infinite; }
-        @keyframes flash { 0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); } 50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); } }
+        /* 3D Coin Wrapper & Physics */
+        .coin-wrapper { perspective: 1000px; margin: 30px 0; z-index: 5; }
+        .coin-btn { 
+            width: 320px; height: 320px; border-radius: 50%; 
+            background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;
+            transition: transform 0.1s ease-out; transform-style: preserve-3d;
+            cursor: pointer; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
 
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
         .container.active { display: flex; animation: fadeIn 0.3s ease; }
         
-        /* THE 3D TILT COIN */
-        .coin-wrapper { perspective: 1000px; margin: 30px 0; z-index: 5; }
-        .coin-btn { 
-            width: 310px; height: 310px; border-radius: 50%; 
-            background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;
-            transition: transform 0.1s ease-out; transform-style: preserve-3d;
-            cursor: pointer; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-        }
-
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
-        .btn-active-grey { background: #555 !important; color: #888 !important; cursor: default !important; }
-        
-        .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
+        .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        
+        /* Warp Boost Effect */
+        body.boost-active { background: radial-gradient(circle, #1a0033 0%, #010205 100%); animation: lightning 1.5s infinite; }
+        @keyframes lightning { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
 
         .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s forwards; pointer-events: none; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
-        
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-140px); } }
         #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; color: var(--gold); font-weight: bold; }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
     </style>
 </head>
 
@@ -84,18 +81,18 @@
         </div>
         <div class="glass-card">
             <h3>⚡ WARP BOOST (5X)</h3>
-            <p>Daily: <span id="boost-count">2</span>/2</p>
-            <button id="boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE</button>
+            <p>Daily Uses Left: <span id="boost-count">2</span>/2</p>
+            <button id="boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE WARP</button>
         </div>
     </div>
 
     <div id="premium" class="container">
         <h2 style="color:var(--gold);">ELITE PANEL</h2>
         <div class="glass-card">
-            <p style="font-size:22px; font-weight:bold;">ID: <span id="p-suffix">--</span></p>
-            <p>OPay: <b style="color:var(--green);">8124647818</b></p>
-            <button class="btn-gold" onclick="contactAdmin()">DM ADMIN (ID: <span id="dm-id"></span>)</button>
-            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center; margin-top:15px;" placeholder="ENTER CODE">
+            <p style="font-size:22px; font-weight:bold;">USER ID: <span id="dm-id">--</span></p>
+            <p>OPay Account: <b style="color:var(--green);">8124647818</b></p>
+            <button class="btn-gold" onclick="contactAdmin()">DIRECT MESSAGE ADMIN</button>
+            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center; margin-top:15px;" placeholder="ENTER ACTIVATION CODE">
             <button class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
         </div>
         
@@ -106,7 +103,7 @@
             <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444; padding-top:10px;">
                 <input type="text" id="adm-suffix" placeholder="Suffix" style="width:45%; padding:8px;">
                 <input type="number" id="adm-salt" placeholder="Salt" style="width:45%; padding:8px;">
-                <button class="btn-gold" onclick="generateAdminCode()">GENERATE</button>
+                <button class="btn-gold" onclick="generateAdminCode()">GENERATE CODE</button>
                 <p id="gen-result" style="color:var(--green); font-weight:bold;"></p>
             </div>
         </div>
@@ -124,8 +121,7 @@
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-4);
         const v = "v3_";
-        const secretKey = 777;
-        
+
         let bal = parseInt(localStorage.getItem(v+'bal_'+uid)) || 0;
         let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
         let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
@@ -150,12 +146,13 @@
             e.preventDefault();
             if (eng <= 0) return;
             
-            // THE 20 DEGREE TILT LOGIC
             const coin = document.getElementById('coin');
             const rect = coin.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width/2;
             const y = e.clientY - rect.top - rect.height/2;
-            coin.style.transform = `rotateX(${-y/8}deg) rotateY(${x/8}deg) scale(0.96)`;
+            
+            // NO SHRINK: Scale stays 1, only rotation changes
+            coin.style.transform = `rotateX(${-y/7}deg) rotateY(${x/7}deg) scale(1)`;
 
             let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
             bal += val; adThreshold += val; eng--;
@@ -176,15 +173,18 @@
             updateUI();
         }
 
-        function resetTilt() { document.getElementById('coin').style.transform = `rotateX(0) rotateY(0) scale(1)`; }
+        function resetTilt() { document.getElementById('coin').style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`; }
 
         function showDoubleAd() {
             window.Adsgram.init({ blockId: "22672" }).show().then(() => {
                 let w = 7; document.getElementById('ad-countdown').style.display = 'block';
                 const t = setInterval(() => {
                     w--; document.getElementById('ad-timer-val').innerText = w;
-                    if (w <= 0) { clearInterval(t); document.getElementById('ad-countdown').style.display = 'none'; 
-                    window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 3000; updateUI(); }); }
+                    if (w <= 0) { 
+                        clearInterval(t); 
+                        document.getElementById('ad-countdown').style.display = 'none'; 
+                        window.Adsgram.init({ blockId: "22672" }).show().then(() => { bal += 3000; updateUI(); }); 
+                    }
                 }, 1000);
             });
         }
@@ -204,7 +204,13 @@
                 let left = 30;
                 const bt = setInterval(() => {
                     left--; document.getElementById('boost-timer').innerText = `WARP: ${left}s`;
-                    if(left <= 0) { clearInterval(bt); isBoosted = false; document.body.classList.remove('boost-active'); document.getElementById('boost-timer').innerText = ""; updateUI(); }
+                    if(left <= 0) { 
+                        clearInterval(bt); 
+                        isBoosted = false; 
+                        document.body.classList.remove('boost-active'); 
+                        document.getElementById('boost-timer').innerText = ""; 
+                        updateUI(); 
+                    }
                 }, 1000);
                 updateUI();
             }
@@ -220,25 +226,24 @@
         function startBot() { setInterval(() => { if (botExp > Date.now()) { bal += (premExpiry > Date.now() ? 5 : 1); updateUI(); } }, 3000); }
 
         function activatePremium() {
-            const p1 = (parseInt(suffix) + secretKey).toString(16);
+            const p1 = (parseInt(suffix) + 777).toString(16);
             const p2 = (parseInt(salt) * 157).toString(16);
             if (document.getElementById('code-input').value.trim() === `DVS-${p1}-${p2}-${suffix}`) {
                 premExpiry = Date.now() + (3 * 24 * 60 * 60 * 1000); salt++;
                 localStorage.setItem(v+'premE_'+uid, premExpiry);
                 localStorage.setItem(v+'salt_'+uid, salt);
-                txs.unshift({d: new Date().toLocaleDateString(), s: "PREMIUM ACTIVATED"});
+                txs.unshift({ date: new Date().toLocaleDateString(), status: "PREMIUM ACTIVATED" });
                 localStorage.setItem(v+'txs_'+uid, JSON.stringify(txs));
-                updateUI(); tg.showAlert("Premium Active!");
+                updateUI(); tg.showAlert("Premium Activated!");
             }
         }
 
         function updateUI() {
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
-            document.getElementById('p-suffix').innerText = suffix;
             document.getElementById('energy').innerText = eng;
             document.getElementById('boost-count').innerText = boosts;
-            document.getElementById('tx-history').innerHTML = txs.map(x => `<div>[${x.d}] ${x.s}</div>`).join('') || "No recent activity.";
+            document.getElementById('tx-history').innerHTML = txs.map(t => `<div>[${t.date}] ${t.status}</div>`).join('') || "No history.";
             const bBtn = document.getElementById('bot-purchase-btn');
             if (hasBot && botExp > Date.now()) { bBtn.innerText = "ACTIVE"; bBtn.className = "btn-gold btn-active-grey"; }
         }
@@ -253,8 +258,8 @@
             } else t.innerText = "";
         }
 
-        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/crypt7tapbot?startapp=${uid}&text=Join Crypto_Tap!`); }
-        function contactAdmin() { tg.openTelegramLink(`https://t.me/crypt7tapbot?text=ID:${uid}%20Premium%20Request`); }
+        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/crypt7tapbot?startapp=${uid}&text=Join and earn!`); }
+        function contactAdmin() { tg.openTelegramLink(`https://t.me/crypt7tapbot?text=ID:${uid}%20requested%20premium`); }
         function doTask(r) { window.open("https://tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); }, 5000); }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
         
@@ -263,7 +268,7 @@
         function generateAdminCode() {
             const sfx = document.getElementById('adm-suffix').value;
             const slt = document.getElementById('adm-salt').value;
-            const p1 = (parseInt(sfx) + secretKey).toString(16);
+            const p1 = (parseInt(sfx) + 777).toString(16);
             const p2 = (parseInt(slt) * 157).toString(16);
             document.getElementById('gen-result').innerText = `DVS-${p1}-${p2}-${sfx}`;
         }
