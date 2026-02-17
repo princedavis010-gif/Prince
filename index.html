@@ -14,30 +14,60 @@
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
         
-        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
-        .container.active { display: flex; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body.boost-active { 
+            background: radial-gradient(circle, #1a0033 0%, #010205 100%);
+            animation: lightning-flash 2s infinite;
+        }
+        @keyframes lightning-flash {
+            0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); }
+            50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); }
+        }
 
         .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
         .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
-        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
-
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; transition: opacity 0.5s ease, filter 0.5s ease; }
+        .coin-btn::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; transform: translateZ(-18px); background: #2c2105; box-shadow: inset 0 0 20px black; }
         
-        /* THE GRAY STYLE */
-        .btn-cooldown { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
-
+        .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
+        .container.active { display: flex; animation: fadeIn 0.4s ease; }
+        
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
+        .btn-active-grey { background: #555 !important; color: #888 !important; cursor: not-allowed !important; }
+        
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
 
+        .flying-coin {
+            position: fixed;
+            width: 25px; height: 25px;
+            background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
+
+        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
+        
+        #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
+        #bot-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; background: #111; border: 2px solid var(--gold); border-radius: 20px; z-index: 10000; padding: 25px; text-align: center; }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        
         .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
-        .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; }
+        .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; transition: 0.1s; }
+        
+        #refill-btn-container { display: none; width: 100%; margin-bottom: 10px; }
     </style>
 </head>
 
 <body onload="initApp();">
+    <div id="ad-countdown">NEXT AD IN: <span id="ad-timer-val">7</span>s</div>
+    <div id="bot-modal">
+        <h2 style="color:var(--gold); margin:0;">🤖 WHILE YOU WERE AWAY</h2>
+        <p id="bot-earned-msg" style="font-size:18px; margin:15px 0;"></p>
+        <button class="btn-gold" onclick="closeBotModal()">CLAIM</button>
+    </div>
 
     <div id="home" class="container active">
         <div class="bal-container">
@@ -45,128 +75,251 @@
             <span id="balance">0</span>
         </div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        <div id="prem-timer" style="color:var(--green); font-weight:bold; font-size:12px; height:15px;"></div>
         
-        <div class="coin-wrapper">
-            <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
+        <div id="tap-content" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div class="coin-wrapper">
+                <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
+            </div>
+            <div id="boost-timer" style="color:var(--purple); font-weight:bold; height:20px;"></div>
+            <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
         </div>
-        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
 
-        <div style="width:100%; margin-top:20px;">
-            <button id="monetag-btn" class="btn-gold" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+        <div id="refill-btn-container">
+            <button class="btn-gold" style="background: var(--green); color:#000;" onclick="refillEnergyAd()">📺 REFILL ENERGY</button>
+        </div>
+
+        <div id="adsgram-buttons" style="width:100%;">
+            <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
+            <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
         </div>
     </div>
 
     <div id="tasks" class="container">
         <h2 style="color:var(--gold);">TASKS</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; width:100%; text-align:center;">
-            <p>Invite friends to earn more!</p>
-            <button class="btn-gold" onclick="tg.showAlert('Coming Soon!')">INVITE</button>
+        <div class="glass-card" style="border: 1px solid var(--purple);">
+            <h3 style="color:var(--purple); margin:0;">👥 INVITE FRIENDS</h3>
+            <p>Get 10,000 for joins!</p>
+            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="shareInvite()">INVITE</button>
+        </div>
+        <div class="glass-card">
+            <p>Follow TikTok @ogprincedavis5081</p>
+            <button class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">LIKE/COMMENT (+5,000)</button>
+        </div>
+    </div>
+
+    <div id="shop" class="container">
+        <h2 style="color:var(--gold);">BOOSTERS</h2>
+        <div class="glass-card">
+            <h3>🤖 AUTO-TAP BOT</h3>
+            <button id="bot-purchase-btn" class="btn-gold" onclick="buyBot()">ACTIVATE</button>
+        </div>
+        <div class="glass-card">
+            <h3>⚡ WARP BOOST (5X)</h3>
+            <p>Daily Left: <span id="boost-count">2</span>/2</p>
+            <button class="btn-gold" id="boost-btn" style="background:var(--purple); color:white;" onclick="activateBoost()">ACTIVATE</button>
+        </div>
+    </div>
+
+    <div id="premium" class="container">
+        <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
+        <div class="glass-card">
+            <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
+            <p>Premium Sub (20x Tap) | ₦200</p>
+            <p>OPay: <b>8124647818</b></p>
+            <label for="receipt-upload" class="btn-gold" style="display: block; cursor: pointer; text-align: center;"> 📁 UPLOAD RECEIPT </label>
+            <input type="file" id="receipt-upload" accept="image/*" style="display:none;" onchange="uploadReceipt()">
+            <p id="upload-status" style="font-size:12px; color:var(--green); margin-top:5px;"></p>
+        </div>
+        <div class="glass-card">
+            <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
+            <button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
+        </div>
+        <button class="btn-gold" id="redeem-btn" onclick="requestRedeem()">REDEEM DIAMOND FOR ₦100 AIRTIME</button>
+        <div class="glass-card" style="margin-top:20px;">
+            <h4 id="admin-trigger" onclick="handleAdminTap()" style="cursor:pointer;">📜 RECENT ACTIVITY</h4>
+            <div id="tx-history" class="tx-list">No recent requests.</div>
+            <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444; padding-top:10px;">
+                <p style="color:var(--gold); font-size:10px; font-weight:bold;">ADMIN TOOLS</p>
+                <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Suffix">
+                <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Salt">
+                <button class="btn-gold" style="height:35px;" onclick="generateAdminCode()">GENERATE CODE</button>
+                <p id="gen-result" style="color:var(--green); font-size:14px; font-weight:bold; margin:10px 0;"></p>
+            </div>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="showTab('home', this)">🏠 HOME</div>
-        <div class="nav-item" onclick="showTab('tasks', this)">📋 TASKS</div>
+        <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
+        <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
+        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Boost</div>
+        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
-        const v = "v5_";
+        const suffix = uid.slice(-4);
+        const v = "v3_";
+        const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI";
+        const chatId = "-1003843441800";
+        const secretKey = 777;
 
         let bal = parseInt(localStorage.getItem(v + 'bal_' + uid)) || 0;
         let dia = parseInt(localStorage.getItem(v + 'dia_' + uid)) || 0;
+        let salt = parseInt(localStorage.getItem(v + 'salt_' + uid)) || 1;
+        let hasBot = localStorage.getItem(v + 'bot_' + uid) === 'true';
+        let botExpiry = parseInt(localStorage.getItem(v + 'botExp_' + uid)) || 0;
+        let premExpiry = parseInt(localStorage.getItem(v + 'premExp_' + uid)) || 0;
+        let lastVisit = parseInt(localStorage.getItem(v + 'lastVis_' + uid)) || Date.now();
+        let txs = JSON.parse(localStorage.getItem(v + 'txs_' + uid)) || [];
+        let boosts = parseInt(localStorage.getItem(v + 'boosts_' + uid)) || 2;
         let eng = localStorage.getItem(v + 'eng_' + uid) !== null ? parseInt(localStorage.getItem(v + 'eng_' + uid)) : 1000;
+        
+        let adThreshold = 0;
+        let isBoosted = false;
+        const AdController = window.Adsgram.init({ blockId: "22672" });
 
-        function initApp() {
-            updateUI();
-            checkCooldownOnStartup();
+        function initApp() { 
+            checkAwayEarnings(); 
+            updateUI(); 
+            if (hasBot) startBot(); 
+            setInterval(checkPremiumExpiry, 1000); 
             setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2000);
-        }
-
-        function showTab(tabId, el) {
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            el.classList.add('active');
         }
 
         function handleTap(e) {
             e.preventDefault();
-            if (eng > 0) {
-                bal += 1; eng--;
-                const valEl = document.createElement('div');
-                valEl.className = 'tap-val'; valEl.innerText = `+1`;
-                valEl.style.left = e.clientX + 'px'; valEl.style.top = e.clientY + 'px';
-                document.body.appendChild(valEl);
-                setTimeout(() => valEl.remove(), 800);
-                updateUI();
-            }
+            const touches = e.changedTouches ? Array.from(e.changedTouches) : [e];
+            touches.forEach(t => {
+                if (eng > 0) {
+                    let val = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
+                    bal += val; adThreshold += val; eng--;
+                    
+                    // Flying Coin Animation
+                    const fCoin = document.createElement('div');
+                    fCoin.className = 'flying-coin';
+                    fCoin.style.left = t.clientX + 'px'; fCoin.style.top = t.clientY + 'px';
+                    document.body.appendChild(fCoin);
+                    const target = document.getElementById('bal-icon').getBoundingClientRect();
+                    setTimeout(() => {
+                        fCoin.style.left = (target.left + target.width/2) + 'px';
+                        fCoin.style.top = (target.top + target.height/2) + 'px';
+                        fCoin.style.transform = "scale(0.2)"; fCoin.style.opacity = "0";
+                    }, 50);
+                    setTimeout(() => fCoin.remove(), 800);
+
+                    // +Val Animation
+                    const valEl = document.createElement('div');
+                    valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
+                    valEl.style.left = t.clientX + 'px'; valEl.style.top = t.clientY + 'px';
+                    document.body.appendChild(valEl);
+                    setTimeout(() => valEl.remove(), 800);
+
+                    // Coin Rotation
+                    const rect = document.getElementById('coin').getBoundingClientRect();
+                    const rotateY = ((t.clientX - (rect.left + rect.width / 2)) / (rect.width / 2)) * 20;
+                    const rotateX = -((t.clientY - (rect.top + rect.height / 2)) / (rect.height / 2)) * 20;
+                    document.getElementById('coin').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+                    setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
+
+                    // ADSGRAM MILESTONE (5000 COINS GAINED)
+                    if (adThreshold >= 5000) { 
+                        adThreshold = 0; 
+                        AdController.show().then(() => { bal += 500; updateUI(); tg.showAlert("Ad Verified! +500 Coins."); }); 
+                    }
+                }
+            });
+            updateUI();
         }
 
         function updateUI() {
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
             document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('energy').innerText = eng;
+            document.getElementById('boost-count').innerText = boosts;
+            document.getElementById('p-suffix').innerText = suffix;
+
+            // REDEEM BUTTON GRAY LOGIC
+            const rBtn = document.getElementById('redeem-btn');
+            if (dia < 1) rBtn.classList.add('btn-active-grey'); else rBtn.classList.remove('btn-active-grey');
+
+            // REFILL BUTTON VISIBILITY (< 20)
+            const refillCont = document.getElementById('refill-btn-container');
+            const tapContent = document.getElementById('tap-content');
+            if (eng < 20) {
+                tapContent.style.opacity = "0.5"; // Dim slightly but keep tap area stable
+                refillCont.style.display = "block";
+            } else {
+                tapContent.style.opacity = "1";
+                refillCont.style.display = "none";
+            }
+
             localStorage.setItem(v + 'bal_' + uid, bal);
+            localStorage.setItem(v + 'dia_' + uid, dia);
             localStorage.setItem(v + 'eng_' + uid, eng);
+            localStorage.setItem(v + 'boosts_' + uid, boosts);
+            localStorage.setItem(v + 'txs_' + uid, JSON.stringify(txs));
+            const hEl = document.getElementById('tx-history');
+            if (txs.length > 0) hEl.innerHTML = txs.map(t => `<div>• ${t.date}: ${t.status}</div>`).join('');
+        }
+
+        async function requestRedeem() {
+            if (dia < 1) { tg.showAlert("You need 50,000 coins for a Diamond!"); return; }
+            let ph = localStorage.getItem(v + 'phone_' + uid);
+            if (!ph) {
+                ph = prompt("Enter phone number for ₦100 Airtime:");
+                if (ph) { localStorage.setItem(v + 'phone_' + uid, ph); sendToAdmin(ph); }
+            } else {
+                if (confirm(`Use saved number ${ph}?\n(Cancel to enter new number)`)) {
+                    sendToAdmin(ph);
+                } else {
+                    let nph = prompt("Enter new phone number:");
+                    if (nph) { localStorage.setItem(v + 'phone_' + uid, nph); sendToAdmin(nph); }
+                }
+            }
+        }
+
+        async function sendToAdmin(ph) {
+            const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
+            try {
+                const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
+                if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Request Sent" }); updateUI(); tg.showAlert("Sent!"); }
+            } catch (e) { }
+        }
+
+        async function refillEnergyAd() {
+            if (typeof show_10611291 === 'function') {
+                const res = await show_10611291({ telegram_id: uid });
+                if (res && res.reward_event_type === 'valued') { eng = 1000; updateUI(); tg.showAlert("Energy Refilled! ⚡"); }
+            } else { tg.openLink('https://libtl.com/sdk.js?zone=10611291'); setTimeout(() => { eng = 1000; updateUI(); }, 2000); }
         }
 
         async function showMonetag() {
-            const btn = document.getElementById('monetag-btn');
-            const now = Date.now();
-            const cooldownEnd = localStorage.getItem(v + 'monetag_expiry_' + uid) || 0;
-
-            if (now < cooldownEnd) {
-                const remaining = Math.ceil((cooldownEnd - now) / 1000);
-                tg.showAlert(`Cooldown; ${remaining} seconds remaining`);
-                return;
-            }
-
             if (typeof show_10611291 === 'function') {
-                try {
-                    const res = await show_10611291({ telegram_id: uid });
-                    if (res && res.reward_event_type === 'valued') {
-                        bal += 3000;
-                        updateUI();
-                        tg.showAlert("✅ +3,000 Coins Added!");
-                        const expiry = Date.now() + (90 * 1000);
-                        localStorage.setItem(v + 'monetag_expiry_' + uid, expiry);
-                        runVisualTimer(btn, 90);
-                    } else {
-                        tg.showAlert("Ad skipped or not valued. No reward.");
-                    }
-                } catch (e) { tg.showAlert("Ad failed to load."); }
-            }
+                const res = await show_10611291({ telegram_id: uid });
+                if (res && res.reward_event_type === 'valued') { bal += 3000; updateUI(); tg.showAlert("+3,000 Coins!"); }
+            } else { tg.openLink('https://libtl.com/sdk.js?zone=10611291'); setTimeout(() => { bal += 3000; updateUI(); }, 2000); }
         }
 
-        function checkCooldownOnStartup() {
-            const btn = document.getElementById('monetag-btn');
-            const cooldownEnd = localStorage.getItem(v + 'monetag_expiry_' + uid) || 0;
-            const now = Date.now();
-            if (now < cooldownEnd) {
-                const remaining = Math.ceil((cooldownEnd - now) / 1000);
-                runVisualTimer(btn, remaining);
-            }
-        }
-
-        function runVisualTimer(btn, seconds) {
-            btn.classList.add('btn-cooldown');
-            const timer = setInterval(() => {
-                const now = Date.now();
-                const expiry = localStorage.getItem(v + 'monetag_expiry_' + uid);
-                let timeLeft = Math.ceil((expiry - now) / 1000);
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    btn.classList.remove('btn-cooldown');
-                    btn.innerText = "📺 GET FREE 3,000 COINS";
-                } else {
-                    btn.innerText = `WAIT (${timeLeft}s)`;
-                }
-            }, 1000);
-        }
+        // --- EXISTING UTILS ---
+        function generateComplexCode(sfx, slt) { const p1 = (parseInt(sfx) + secretKey).toString(16); const p2 = (parseInt(slt) * 157).toString(16); return `DVS-${p1}-${p2}-${sfx}`; }
+        let adminTaps = 0;
+        function handleAdminTap() { adminTaps++; if (adminTaps === 3) { if (prompt("Admin Password:") === "DavisAdmin2026") { document.getElementById('admin-box').style.display = 'block'; tg.showAlert("Access Granted."); } adminTaps = 0; } setTimeout(() => adminTaps = 0, 2000); }
+        function generateAdminCode() { const sfx = document.getElementById('adm-suffix').value; const slt = document.getElementById('adm-salt').value; if (sfx.length === 4 && slt) { const c = generateComplexCode(sfx, slt); document.getElementById('gen-result').innerText = c; navigator.clipboard.writeText(c); tg.showAlert("Code Copied!"); } }
+        async function uploadReceipt() { const f = document.getElementById('receipt-upload').files[0]; if(!f) return; const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f); fd.append('caption', `Receipt: ${suffix}`); await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {method:'POST', body:fd}); tg.showAlert("Sent!"); }
+        function buyBot() { const n = Date.now(); hasBot = true; botExpiry = n + (12*60*60*1000); startBot(); updateUI(); }
+        function startBot() { if(hasBot) setInterval(() => { if(botExpiry > Date.now()) { bal += 1; updateUI(); } }, 3000); }
+        function activatePremium() { if(document.getElementById('code-input').value === generateComplexCode(suffix, salt)) { premExpiry = Date.now() + (3*24*60*60*1000); salt++; updateUI(); tg.showAlert("Elite!"); } }
+        function activateBoost() { if(boosts > 0) { boosts--; isBoosted=true; document.body.classList.add('boost-active'); setTimeout(() => {isBoosted=false; document.body.classList.remove('boost-active');}, 20000); updateUI(); } }
+        function showDoubleAd() { AdController.show().then(() => { let w=7; document.getElementById('ad-countdown').style.display='block'; const t=setInterval(() => { w--; document.getElementById('ad-timer-val').innerText=w; if(w<=0){clearInterval(t); document.getElementById('ad-countdown').style.display='none'; AdController.show().then(()=> {bal+=3000; updateUI();}); } }, 1000); }); }
+        function shareInvite() { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/crypt7tapbot/prince?startapp='+uid)}&text=Join me!`); }
+        function checkAwayEarnings() { if(hasBot && botExpiry > Date.now()) { let d = Math.floor((Date.now()-lastVisit)/1000); if(d>10){ let e = Math.min(d/3, 5000); bal+=e; document.getElementById('bot-modal').style.display='block'; document.getElementById('bot-earned-msg').innerText=`Bot earned ${Math.floor(e)} coins!`; } } localStorage.setItem(v+'lastVis_'+uid, Date.now()); }
+        function checkPremiumExpiry() { if(premExpiry > Date.now()) { let diff = premExpiry - Date.now(); document.getElementById('prem-timer').innerText = `Elite Active`; } }
+        function doTask(t, r) { window.open("https://www.tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); }, 5000); }
+        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
+        function closeBotModal() { document.getElementById('bot-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
-
