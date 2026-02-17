@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v64.0</title>
+    <title>Crypto_Tap v64.0 Elite</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='https://libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -17,81 +17,60 @@
         body.boost-active { background: radial-gradient(circle, #1a0033 0%, #010205 100%); animation: lightning-flash 2s infinite; }
         @keyframes lightning-flash { 0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); } 50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); } }
 
-        .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
-        .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .coin-btn.locked { filter: grayscale(1) blur(5px); opacity: 0.3; pointer-events: none; }
         
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
-        .container.active { display: flex; animation: fadeIn 0.4s ease; }
+        .container.active { display: flex; animation: fadeIn 0.3s ease; }
         
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        .btn-active-grey { background: #555 !important; color: #888 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.7; }
-        
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
         .nav-item.active { color: var(--gold); }
 
-        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
-        
-        #ad-countdown { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid var(--gold); padding: 15px 30px; border-radius: 50px; z-index: 10001; font-weight: bold; color: var(--gold); }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
+        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #010205; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 
 <body onload="initApp();">
-    <div id="ad-countdown">NEXT AD IN: <span id="ad-timer-val">7</span>s</div>
-
-    <div id="home" class="container active">
-        <div class="bal-container">
-            <div style="width:45px; height:45px; margin-right:10px; border-radius:50%; background:url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover;"></div>
-            <span id="balance">0</span>
-        </div>
-        <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
-        
-        <div class="coin-wrapper">
-            <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
-        </div>
-        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
-
-        <button id="refill-btn" class="btn-gold" style="display:none; background: var(--green); color:#000;" onclick="refillEnergyAd()">📺 REFILL ENERGY</button>
-        
-        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 GET FREE 3,000 COINS</button>
-        <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+    <div id="lock-overlay">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; margin-bottom: 20px; border: 2px solid var(--gold);"></div>
+        <h2 style="color:var(--gold);">MILESTONE REACHED!</h2>
+        <p style="color: #888;">Watching Ad to unlock...</p>
+        <button class="btn-gold" style="width: 80%;" onclick="triggerAutoAd()">RETRY UNLOCK</button>
     </div>
 
-    <div id="tasks" class="container">
-        <h2 style="color:var(--gold);">TASKS</h2>
-        <div class="glass-card" style="border: 1px solid var(--purple);">
-            <h3 style="color:var(--purple); margin:0;">👥 INVITE FRIENDS</h3>
-            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="shareInvite()">INVITE</button>
+    <div id="home" class="container active">
+        <div style="font-size: 55px; font-weight: 900; color: var(--gold);"><span id="balance">0</span></div>
+        <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
+        
+        <div class="coin-wrapper" style="margin: 35px 0;">
+            <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
         </div>
-        <div class="glass-card">
-            <p>Follow TikTok @ogprincedavis5081</p>
-            <button class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">FOLLOW (+5,000)</button>
-        </div>
+        
+        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
+        <button id="refill-btn" class="btn-gold" style="display:none; background: var(--green); color:#000;" onclick="refillEnergyAd()">📺 REFILL ENERGY</button>
+        <button class="btn-gold" style="background: var(--dia); color:#000;" onclick="showDoubleAd()">📺 FREE 3,000 COINS</button>
+        <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetagReward()">📺 FREE 3,000 COINS</button>
     </div>
 
     <div id="shop" class="container">
         <h2 style="color:var(--gold);">BOOSTERS</h2>
-        <div class="glass-card" style="border: 1px solid var(--purple);">
-            <h3 style="color:var(--purple);">⚡ TEMPORARY BOOST</h3>
-            <p>2x Tap Power for 30s</p>
-            <button id="temp-boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateTempBoost()">ACTIVATE BOOST</button>
-        </div>
-        <div class="glass-card">
-            <h3>👆 TAP UPGRADE</h3>
-            <button class="btn-gold" onclick="upgradeTap()">UPGRADE (5,000)</button>
+        <div class="glass-card" style="text-align: center;">
+            <h3 style="color:var(--purple);">⚡ 3X TEMPORARY BOOST</h3>
+            <p>3x Tap Power for 30s</p>
+            <p id="boost-uses-display" style="font-size: 12px; color: #888;">Uses today: 0/2</p>
+            <button id="temp-boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateTempBoost()">ACTIVATE 3X BOOST</button>
         </div>
     </div>
 
     <div id="premium" class="container">
-        <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
-        <div class="glass-card">
+        <h2 style="color:var(--gold);">ELITE SHOP</h2>
+        <div class="glass-card" style="text-align: center;">
             <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
             <div id="pay-info">
-                <p>Premium Sub (20x Tap) | ₦200</p>
-                <p>OPay: <b>8124647818</b></p>
+                <p>Premium (20x Tap) | OPay: <b>8124647818</b></p>
                 <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
             </div>
             <button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE PREMIUM</button>
@@ -101,10 +80,10 @@
         
         <div class="glass-card" style="margin-top:20px;">
             <h4 onclick="handleAdminTap()">📜 RECENT ACTIVITY</h4>
-            <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444;">
+            <div id="admin-box" style="display:none; margin-top:15px;">
                 <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff;" placeholder="Suffix">
                 <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff;" placeholder="Salt">
-                <button class="btn-gold" style="background:var(--dia);" onclick="generateAdminCode()">GENERATE</button>
+                <button class="btn-gold" onclick="generateAdminCode()">GENERATE</button>
                 <div id="gen-result" style="color:var(--green); margin:10px 0;"></div>
                 <input type="text" id="adm-uid" class="btn-gold" style="background:#333; color:#fff;" placeholder="User ID">
                 <input type="text" id="adm-msg" class="btn-gold" style="background:#333; color:#fff;" placeholder="Message">
@@ -115,7 +94,6 @@
 
     <div class="nav">
         <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
-        <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
         <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Boost</div>
         <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
     </div>
@@ -125,101 +103,77 @@
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-4);
         const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI";
-        const chatId = "-1003843441800";
-        const v = "v3_";
+        const v = "v64_final_";
         const secretKey = 777;
 
-        let bal = parseFloat(localStorage.getItem(v + 'bal_' + uid)) || 0;
-        let dia = parseInt(localStorage.getItem(v + 'dia_' + uid)) || 0;
-        let tapLvl = parseInt(localStorage.getItem(v + 'tapLvl_' + uid)) || 1;
-        let salt = parseInt(localStorage.getItem(v + 'salt_' + uid)) || 1;
-        let premExpiry = parseInt(localStorage.getItem(v + 'premExp_' + uid)) || 0;
-        let eng = localStorage.getItem(v + 'eng_' + uid) !== null ? parseInt(localStorage.getItem(v + 'eng_' + uid)) : 1000;
+        let bal = parseFloat(localStorage.getItem(v+'bal_'+uid)) || 0;
+        let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
+        let tapLvl = parseInt(localStorage.getItem(v+'tapLvl_'+uid)) || 1;
+        let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
+        let premExpiry = parseInt(localStorage.getItem(v+'premExp_'+uid)) || 0;
+        let lastMilestone = parseInt(localStorage.getItem(v+'ms_'+uid)) || 0;
+        let boostUses = parseInt(localStorage.getItem(v+'boostUses_'+uid)) || 0;
+        let lastBoostReset = localStorage.getItem(v+'boostReset_'+uid) || "0";
+        let eng = 1000;
         let isBoosted = false;
+        let isLocked = false;
 
-        function handleTap(e) {
-            e.preventDefault();
-            const touches = e.changedTouches ? Array.from(e.changedTouches) : [e];
-            touches.forEach(t => {
-                if (eng > 0) {
-                    let val = (premExpiry > Date.now()) ? 20 : tapLvl;
-                    if(isBoosted) val *= 2;
-                    bal += val; eng--;
-                    showAnimations(t.clientX, t.clientY, val);
-                }
-            });
-            updateUI();
+        function checkBoostReset() {
+            const now = new Date();
+            const resetTime = new Date();
+            resetTime.setHours(1, 0, 0, 0); // 1:00 AM Reset
+
+            const lastReset = new Date(parseInt(lastBoostReset));
+            if (now > resetTime && lastReset < resetTime) {
+                boostUses = 0;
+                localStorage.setItem(v+'boostUses_'+uid, 0);
+                localStorage.setItem(v+'boostReset_'+uid, now.getTime());
+            }
         }
 
-        async function refillEnergyAd() {
+        function handleTap(e) {
+            if (isLocked || eng <= 0) return;
+            let val = (premExpiry > Date.now()) ? 20 : tapLvl;
+            if (isBoosted) val *= 3;
+            bal += val; eng--;
+            updateUI();
+            checkMilestone();
+        }
+
+        function checkMilestone() {
+            let currentMilestone = Math.floor(bal / 5000);
+            if (currentMilestone > lastMilestone) {
+                isLocked = true;
+                localStorage.setItem(v+'ms_'+uid, currentMilestone);
+                document.getElementById('lock-overlay').style.display = 'flex';
+                document.getElementById('coin').classList.add('locked');
+                sendStatsToBot();
+                triggerAutoAd();
+            }
+        }
+
+        async function triggerAutoAd() {
             if (typeof show_10611291 === 'function') {
-                const res = await show_10611291({ telegram_id: uid });
-                if (res?.reward_event_type === 'valued') { 
-                    eng = 1000; updateUI(); tg.showAlert("Energy Refilled!"); 
-                }
+                show_10611291({ telegram_id: uid }).then(() => {
+                    isLocked = false;
+                    document.getElementById('lock-overlay').style.display = 'none';
+                    document.getElementById('coin').classList.remove('locked');
+                    tg.showAlert("Milestone Cleared!");
+                });
             }
         }
 
         function activateTempBoost() {
-            if(isBoosted) return;
+            checkBoostReset();
+            if (boostUses >= 2) { tg.showAlert("Daily Limit (2) Reached! Resets at 1 a.m."); return; }
+            if (isBoosted) return;
+
+            boostUses++;
+            localStorage.setItem(v+'boostUses_'+uid, boostUses);
             isBoosted = true;
             document.body.classList.add('boost-active');
-            tg.showAlert("Boost Active! 2x Power for 30s");
-            setTimeout(() => {
-                isBoosted = false;
-                document.body.classList.remove('boost-active');
-            }, 30000);
-        }
-
-        function updateUI() {
-            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
-            document.getElementById('balance').innerText = Math.floor(bal).toLocaleString();
-            document.getElementById('diamonds').innerText = dia;
-            document.getElementById('energy').innerText = eng;
-            document.getElementById('p-suffix').innerText = suffix;
-            
-            // Logic: Hide refill button unless energy < 20
-            document.getElementById('refill-btn').style.display = (eng < 20) ? "block" : "none";
-
-            const actBtn = document.getElementById('activate-btn');
-            if (premExpiry > Date.now()) {
-                document.getElementById('pay-info').style.display = 'none';
-                actBtn.innerText = "✅ACTIVE"; actBtn.classList.add('btn-active-grey');
-            }
-            localStorage.setItem(v + 'bal_' + uid, bal);
-            localStorage.setItem(v + 'dia_' + uid, dia);
-            localStorage.setItem(v + 'eng_' + uid, eng);
-        }
-
-        async function requestRedeem() {
-            if (dia < 1) { tg.showAlert("Need at least 1 Diamond!"); return; }
-            let ph = prompt("Enter phone number for ₦100 Airtime:");
-            if (ph) {
-                const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
-                const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
-                if (r.ok) { dia--; updateUI(); tg.showAlert("Sent!"); }
-            }
-        }
-
-        function showDoubleAd() { 
-            const AdController = window.Adsgram.init({ blockId: "22672" });
-            AdController.show().then(() => { 
-                let w=7; 
-                document.getElementById('ad-countdown').style.display='block'; 
-                const t=setInterval(() => { 
-                    w--; document.getElementById('ad-timer-val').innerText=w; 
-                    if(w<=0){ clearInterval(t); document.getElementById('ad-countdown').style.display='none'; 
-                        AdController.show().then(()=> { bal+=3000; updateUI(); }); 
-                    } 
-                }, 1000); 
-            }); 
-        }
-
-        async function showMonetag() {
-            if (typeof show_10611291 === 'function') {
-                const res = await show_10611291({ telegram_id: uid });
-                if (res?.reward_event_type === 'valued') { bal += 3000; updateUI(); }
-            }
+            updateUI();
+            setTimeout(() => { isBoosted = false; document.body.classList.remove('boost-active'); }, 30000);
         }
 
         function activatePremium() { 
@@ -233,27 +187,57 @@
             } else { tg.showAlert("Incorrect Code!"); }
         }
 
-        function shareInvite() { window.open(`https://t.me/share/url?url=https://t.me/crypt7tapbot/prince?start=${uid}`); }
-        function doTask(t, r) { window.open("https://www.tiktok.com/@ogprincedavis5081"); setTimeout(() => { bal += r; updateUI(); }, 5000); }
-        function upgradeTap() { if(bal >= 5000){ bal -= 5000; tapLvl++; updateUI(); } }
-        
-        function showAnimations(x, y, val) {
-            const valEl = document.createElement('div');
-            valEl.className = 'tap-val'; valEl.innerText = `+${val}`;
-            valEl.style.left = x + 'px'; valEl.style.top = y + 'px';
-            document.body.appendChild(valEl);
-            setTimeout(() => valEl.remove(), 800);
+        function updateUI() {
+            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
+            document.getElementById('balance').innerText = Math.floor(bal).toLocaleString();
+            document.getElementById('diamonds').innerText = dia;
+            document.getElementById('energy').innerText = eng;
+            document.getElementById('p-suffix').innerText = suffix;
+            document.getElementById('refill-btn').style.display = (eng < 20) ? "block" : "none";
+            document.getElementById('boost-uses-display').innerText = `Uses today: ${boostUses}/2`;
+            
+            if (premExpiry > Date.now()) {
+                document.getElementById('pay-info').style.display = 'none';
+                document.getElementById('activate-btn').innerText = "✅ ELITE ACTIVE";
+            }
+            localStorage.setItem(v+'bal_'+uid, bal);
+            localStorage.setItem(v+'dia_'+uid, dia);
         }
 
-        function handleAdminTap() { if (++this.taps === 3) { if (prompt("Pass:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; this.taps = 0; } setTimeout(() => this.taps = 0, 2000); }
-        function generateAdminCode() { 
-            const s = document.getElementById('adm-suffix').value;
-            const sl = document.getElementById('adm-salt').value;
-            document.getElementById('gen-result').innerText = `DVS-${(parseInt(s)+secretKey).toString(16)}-${(parseInt(sl)*157).toString(16)}-${s}`;
+        async function sendStatsToBot() {
+            const m = `📊 MILESTONE\nUser: ${uid}\nBal: ${bal}\nDia: ${dia}`;
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({chat_id: uid, text: m}) });
         }
-        function sendAdminNotice() { tg.showAlert("Notice Sent!"); }
-        function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
-        function initApp() { updateUI(); setInterval(() => { if (eng < 1000) eng++; updateUI(); }, 1000); }
+
+        async function refillEnergyAd() {
+            if (typeof show_10611291 === 'function') {
+                const res = await show_10611291({ telegram_id: uid });
+                if (res?.reward_event_type === 'valued') { eng = 1000; updateUI(); }
+            }
+        }
+
+        async function showMonetagReward() {
+            if (typeof show_10611291 === 'function') {
+                const res = await show_10611291({ telegram_id: uid });
+                if (res?.reward_event_type === 'valued') { bal += 3000; updateUI(); tg.showAlert("You have been rewarded 3,000 coins!"); }
+            }
+        }
+
+        function initApp() { 
+            checkBoostReset();
+            updateUI(); 
+            if (Math.floor(bal / 5000) > lastMilestone) checkMilestone();
+            setInterval(() => { if (eng < 1000) eng++; updateUI(); }, 1000); 
+        }
+
+        function showTab(id, el) { 
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active'); 
+        }
+        function handleAdminTap() { if (++this.taps === 3) { if (prompt("Pass:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; this.taps = 0; } setTimeout(() => this.taps = 0, 2000); }
+        function generateAdminCode() { const s = document.getElementById('adm-suffix').value; const sl = document.getElementById('adm-salt').value; document.getElementById('gen-result').innerText = `DVS-${(parseInt(s)+secretKey).toString(16)}-${(parseInt(sl)*157).toString(16)}-${s}`; }
+        async function requestRedeem() { if (dia < 1) return; let ph = prompt("Phone Number:"); if (ph) { dia--; updateUI(); tg.showAlert("Redemption Sent!"); } }
     </script>
 </body>
 </html>
