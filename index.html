@@ -104,11 +104,12 @@
             <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444; padding-top:10px;">
                 <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Suffix">
                 <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Salt">
+                
                 <button class="btn-gold" style="height:35px; background:var(--dia);" onclick="generateAdminCode()">GENERATE</button>
                 
                 <div id="code-display-area" style="display:none; margin-top:10px; align-items:center; justify-content:center; gap:10px;">
                     <span id="gen-result" style="color:var(--green); font-weight:bold;"></span>
-                    <button onclick="copyCode()" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:5px;">COPY</button>
+                    <button onclick="copyCode()" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">COPY</button>
                 </div>
 
                 <div style="margin-top:15px; border-top:1px solid #444; padding-top:10px;">
@@ -180,7 +181,9 @@
             if (premExpiry > Date.now()) {
                 let diff = premExpiry - Date.now();
                 document.getElementById('prem-timer-elite').innerText = `ELITE ACTIVE: ${Math.floor(diff/86400000)} DAYS LEFT`;
-                payInfo.style.display = 'none'; actBtn.innerText = "✅️ACTIVE"; actBtn.classList.add('btn-active-grey');
+                payInfo.style.display = 'none'; 
+                actBtn.innerText = "✅ACTIVE"; 
+                actBtn.classList.add('btn-active-grey');
             }
             document.getElementById('refill-btn-container').style.display = eng < 50 ? "block" : "none";
             localStorage.setItem(v + 'bal_' + uid, bal);
@@ -239,11 +242,13 @@
         function activatePremium() { 
             if (premExpiry > Date.now()) { tg.showAlert("Premium is already Active!"); return; }
             if(document.getElementById('code-input').value === generateComplexCode(suffix, salt)) { 
-                premExpiry = Date.now() + (3*86400000); salt++; 
-                localStorage.setItem(v+'salt_'+uid, salt); localStorage.setItem(v+'premExp_'+uid, premExpiry);
+                premExpiry = Date.now() + (3*86400000); 
+                salt++; 
+                localStorage.setItem(v+'salt_'+uid, salt); 
+                localStorage.setItem(v+'premExp_'+uid, premExpiry);
                 updateUI(); 
                 tg.showAlert("Premium has successfully been Activated. Good job!"); 
-            } else { tg.showAlert("INCORRECT KEY! ❌️🔑"); }
+            } else { tg.showAlert("INCORRECT KEY! ❌🔑"); }
         }
 
         async function showMonetag() {
