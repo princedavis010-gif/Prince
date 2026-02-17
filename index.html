@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v64.0 Elite</title>
+    <title>Crypto_Tap v63.3</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <script src='https://libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
+    <script src='//libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     
@@ -14,276 +14,159 @@
         * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; touch-action: manipulation; }
         body { margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; color: white; background: var(--bg); transition: 0.8s; }
         
-        body.boost-active { background: radial-gradient(circle, #1a0033 0%, #010205 100%); animation: lightning-flash 2s infinite; }
-        @keyframes lightning-flash { 0%, 100% { box-shadow: inset 0 0 50px rgba(160, 32, 240, 0); } 50% { box-shadow: inset 0 0 100px rgba(160, 32, 240, 0.2); } }
-
-        .coin-btn { width: 310px; height: 310px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); z-index: 5; }
-        .coin-btn.locked { filter: grayscale(1) blur(5px); opacity: 0.3; pointer-events: none; }
-        
-        /* Progress Bar Styling */
-        .progress-container { width: 85%; height: 12px; background: #222; border-radius: 10px; margin: 15px 0; overflow: hidden; border: 1px solid #333; }
-        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--gold), #fff); transition: width 0.3s ease; }
-
         .container { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; padding-bottom: 120px; width: 100%; }
-        .container.active { display: flex; animation: fadeIn 0.3s ease; }
+        .container.active { display: flex; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .coin-wrapper { perspective: 1000px; margin: 35px 0; z-index: 5; }
+        .coin-btn { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.08s ease-out; transform-style: preserve-3d; cursor: pointer; background-image: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg'); background-size: cover; background-position: center; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .tap-val { position: absolute; color: var(--gold); font-size: 35px; font-weight: 900; animation: floatUp 0.8s ease-out forwards; pointer-events: none; z-index: 1000; text-shadow: 0 0 10px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-160px); } }
+
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; transition: opacity 0.5s ease, filter 0.5s ease; }
         
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
+        /* THE GRAY STYLE */
+        .btn-cooldown { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
+        .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; cursor: pointer; }
         .nav-item.active { color: var(--gold); }
 
-        #lock-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #010205; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .glass-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 15px; width: 100%; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .bal-container { display: flex; align-items: center; justify-content: center; font-size: 55px; font-weight: 900; color: var(--gold); }
+        .bal-coin { width: 45px; height: 45px; margin-right: 10px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; }
     </style>
 </head>
 
 <body onload="initApp();">
-    <div id="lock-overlay">
-        <div style="width: 80px; height: 80px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; margin-bottom: 20px; border: 2px solid var(--gold);"></div>
-        <h2 style="color:var(--gold);">5,000 COIN MILESTONE!</h2>
-        <p style="color: #888;">Watching Monetag Ad to continue...</p>
-        <button class="btn-gold" style="width: 80%;" onclick="triggerAutoAd()">RETRY UNLOCK</button>
-    </div>
 
     <div id="home" class="container active">
-        <div style="font-size: 55px; font-weight: 900; color: var(--gold);"><span id="balance">0</span></div>
+        <div class="bal-container">
+            <div id="bal-icon" class="bal-coin"></div>
+            <span id="balance">0</span>
+        </div>
         <div style="font-size: 20px; color: var(--dia); font-weight: bold;">💎 <span id="diamonds">0</span></div>
         
-        <div class="progress-container">
-            <div id="bar-fill" class="progress-fill"></div>
-        </div>
-        <div style="font-size: 10px; color: #555; margin-top: -10px; margin-bottom: 15px;">PROGRESS TO NEXT DIAMOND</div>
-
         <div class="coin-wrapper">
             <div class="coin-btn" id="coin" onpointerdown="handleTap(event)"></div>
         </div>
-        
-        <div style="color:#777; font-size:12px; margin-top: 20px;">⚡ <span id="energy">1000</span> / 1000</div>
-        <button id="refill-btn" class="btn-gold" style="display:none; background: var(--green); color:#000;" onclick="refillEnergyAd()">📺 REFILL ENERGY</button>
-        <button class="btn-gold" style="background: #222; border: 1px solid var(--gold); color:var(--gold);" onclick="showMonetagReward()">📺 WATCH AD FOR 3,000 COINS</button>
+        <div style="color:#777; font-size:12px;">⚡ <span id="energy">1000</span> / 1000</div>
+
+        <div style="width:100%; margin-top:20px;">
+            <button id="monetag-btn" class="btn-gold" onclick="showMonetag()">📺 GET FREE 3,000 COINS</button>
+        </div>
     </div>
 
     <div id="tasks" class="container">
         <h2 style="color:var(--gold);">TASKS</h2>
-        <div class="glass-card">
-            <h3 style="color:var(--purple);">👥 REFERRAL PROGRAM</h3>
-            <button class="btn-gold" style="background:var(--purple); color:white;" onclick="shareInvite()">INVITE FRIENDS</button>
-        </div>
-        <div class="glass-card">
-            <p>Follow TikTok @ogprincedavis5081</p>
-            <button class="btn-gold" style="background:#ff0050; color:white;" onclick="doTask('tiktok', 5000)">FOLLOW (+5,000 COINS)</button>
-        </div>
-    </div>
-
-    <div id="shop" class="container">
-        <h2 style="color:var(--gold);">SHOP</h2>
-        <div class="glass-card" style="text-align: center;">
-            <h3 style="color:var(--purple);">⚡ 3X TEMPORARY BOOST</h3>
-            <p>3x Tap Value for 30 Seconds</p>
-            <p id="boost-uses-display" style="font-size: 12px; color: #888;">Uses left today: 2/2</p>
-            <button id="temp-boost-btn" class="btn-gold" style="background:var(--purple); color:white;" onclick="activateTempBoost()">START BOOST</button>
-        </div>
-        <div class="glass-card">
-            <h3>👆 TAP UPGRADE</h3>
-            <p>Current Power: <span id="tap-lvl-display">1</span> / Tap</p>
-            <button class="btn-gold" onclick="upgradeTap()">UPGRADE (5,000 COINS)</button>
-        </div>
-    </div>
-
-    <div id="premium" class="container">
-        <h2 style="color:var(--gold);">ELITE</h2>
-        <div class="glass-card" style="text-align: center;">
-            <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
-            <div id="pay-info">
-                <p>20x Tap Power | Pay OPay: 8124647818</p>
-                <input type="text" id="code-input" class="btn-gold" style="background:#111; color:#fff; text-align:center;" placeholder="ENTER CODE">
-            </div>
-            <button id="activate-btn" class="btn-gold" style="background:var(--green);" onclick="activatePremium()">ACTIVATE</button>
-        </div>
-        
-        <button class="btn-gold" id="redeem-btn" style="background: var(--dia); color: #000;" onclick="requestRedeem()">REDEEM DIAMOND (₦100 AIRTIME)</button>
-        
-        <div class="glass-card" style="margin-top:20px;">
-            <h4 onclick="handleAdminTap()">📜 RECENT ACTIVITY</h4>
-            <div id="admin-box" style="display:none; margin-top:15px;">
-                <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff;" placeholder="Suffix">
-                <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff;" placeholder="Salt">
-                <button class="btn-gold" onclick="generateAdminCode()">GENERATE</button>
-                <div id="gen-result" style="color:var(--green); margin:10px 0;"></div>
-                <input type="text" id="adm-uid" class="btn-gold" style="background:#333; color:#fff;" placeholder="User ID">
-                <input type="text" id="adm-msg" class="btn-gold" style="background:#333; color:#fff;" placeholder="Message">
-                <button class="btn-gold" onclick="sendAdminNotice()">SEND</button>
-            </div>
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; width:100%; text-align:center;">
+            <p>Invite friends to earn more!</p>
+            <button class="btn-gold" onclick="tg.showAlert('Coming Soon!')">INVITE</button>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active" onclick="showTab('home', this)">🪙<br>Home</div>
-        <div class="nav-item" onclick="showTab('tasks', this)">📋<br>Tasks</div>
-        <div class="nav-item" onclick="showTab('shop', this)">⚡<br>Shop</div>
-        <div class="nav-item" onclick="showTab('premium', this)">⭐<br>Elite</div>
+        <div class="nav-item active" onclick="showTab('home', this)">🏠 HOME</div>
+        <div class="nav-item" onclick="showTab('tasks', this)">📋 TASKS</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
-        const suffix = uid.slice(-4);
-        const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI";
-        const v = "v64_master_";
-        const secretKey = 777;
+        const v = "v5_";
 
-        let bal = parseFloat(localStorage.getItem(v+'bal_'+uid)) || 0;
-        let dia = parseInt(localStorage.getItem(v+'dia_'+uid)) || 0;
-        let tapLvl = parseInt(localStorage.getItem(v+'tapLvl_'+uid)) || 1;
-        let salt = parseInt(localStorage.getItem(v+'salt_'+uid)) || 1;
-        let premExpiry = parseInt(localStorage.getItem(v+'premExp_'+uid)) || 0;
-        let lastMilestone = parseInt(localStorage.getItem(v+'ms_'+uid)) || 0;
-        let boostUses = parseInt(localStorage.getItem(v+'boostUses_'+uid)) || 0;
-        let lastBoostReset = localStorage.getItem(v+'boostReset_'+uid) || "0";
-        let eng = localStorage.getItem(v+'eng_'+uid) !== null ? parseInt(localStorage.getItem(v+'eng_'+uid)) : 1000;
-        let isBoosted = false;
-        let isLocked = false;
+        let bal = parseInt(localStorage.getItem(v + 'bal_' + uid)) || 0;
+        let dia = parseInt(localStorage.getItem(v + 'dia_' + uid)) || 0;
+        let eng = localStorage.getItem(v + 'eng_' + uid) !== null ? parseInt(localStorage.getItem(v + 'eng_' + uid)) : 1000;
 
-        function checkBoostReset() {
-            const now = new Date();
-            const resetTime = new Date();
-            resetTime.setHours(1, 0, 0, 0); 
-            const lastReset = new Date(parseInt(lastBoostReset));
-            if (now > resetTime && lastReset < resetTime) {
-                boostUses = 0;
-                localStorage.setItem(v+'boostUses_'+uid, 0);
-                localStorage.setItem(v+'boostReset_'+uid, now.getTime());
-            }
+        function initApp() {
+            updateUI();
+            checkCooldownOnStartup();
+            setInterval(() => { if(eng < 1000) { eng++; updateUI(); } }, 2000);
+        }
+
+        function showTab(tabId, el) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
         }
 
         function handleTap(e) {
-            if (isLocked || eng <= 0) return;
-            let val = (premExpiry > Date.now()) ? 20 : tapLvl;
-            if (isBoosted) val *= 3;
-            bal += val; eng--;
-            updateUI();
-            checkMilestone();
-        }
-
-        function checkMilestone() {
-            let currentMilestone = Math.floor(bal / 5000);
-            if (currentMilestone > lastMilestone) {
-                isLocked = true;
-                localStorage.setItem(v+'ms_'+uid, currentMilestone);
-                document.getElementById('lock-overlay').style.display = 'flex';
-                document.getElementById('coin').classList.add('locked');
-                sendStatsToBot();
-                triggerAutoAd();
-            }
-        }
-
-        async function triggerAutoAd() {
-            if (typeof show_10611291 === 'function') {
-                show_10611291({ telegram_id: uid }).then(() => {
-                    isLocked = false;
-                    document.getElementById('lock-overlay').style.display = 'none';
-                    document.getElementById('coin').classList.remove('locked');
-                });
-            }
-        }
-
-        function activateTempBoost() {
-            checkBoostReset();
-            if (boostUses >= 2) { tg.showAlert("Resets at 1:00 AM"); return; }
-            if (isBoosted) return;
-            boostUses++;
-            localStorage.setItem(v+'boostUses_'+uid, boostUses);
-            isBoosted = true;
-            document.body.classList.add('boost-active');
-            updateUI();
-            setTimeout(() => { isBoosted = false; document.body.classList.remove('boost-active'); }, 30000);
-        }
-
-        function upgradeTap() {
-            if (bal >= 5000) { bal -= 5000; tapLvl++; updateUI(); tg.showAlert("Upgraded!"); }
-        }
-
-        function shareInvite() { window.open(`https://t.me/share/url?url=https://t.me/crypt7tapbot/prince?start=${uid}`); }
-        
-        function doTask(t, r) { 
-            window.open("https://www.tiktok.com/@ogprincedavis5081"); 
-            setTimeout(() => { bal += r; updateUI(); tg.showAlert("Reward Added!"); }, 5000); 
-        }
-
-        function activatePremium() { 
-            const input = document.getElementById('code-input').value;
-            const correct = `DVS-${(parseInt(suffix)+secretKey).toString(16)}-${(parseInt(salt)*157).toString(16)}-${suffix}`;
-            if(input === correct) { 
-                premExpiry = Date.now() + (3*86400000); salt++; 
-                localStorage.setItem(v+'salt_'+uid, salt); localStorage.setItem(v+'premExp_'+uid, premExpiry);
-                updateUI(); 
-                tg.showAlert("Premium has successfully been Activated. Good job!"); 
+            e.preventDefault();
+            if (eng > 0) {
+                bal += 1; eng--;
+                const valEl = document.createElement('div');
+                valEl.className = 'tap-val'; valEl.innerText = `+1`;
+                valEl.style.left = e.clientX + 'px'; valEl.style.top = e.clientY + 'px';
+                document.body.appendChild(valEl);
+                setTimeout(() => valEl.remove(), 800);
+                updateUI();
             }
         }
 
         function updateUI() {
-            // Logic for 50k Diamond Conversion
-            let progressPercent = (bal % 50000) / 50000 * 100;
-            document.getElementById('bar-fill').style.width = progressPercent + "%";
-
-            if (bal >= 50000) { bal -= 50000; dia++; confetti(); }
-            
-            document.getElementById('balance').innerText = Math.floor(bal).toLocaleString();
+            document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('diamonds').innerText = dia;
             document.getElementById('energy').innerText = eng;
-            document.getElementById('tap-lvl-display').innerText = tapLvl;
-            document.getElementById('p-suffix').innerText = suffix;
-            document.getElementById('refill-btn').style.display = (eng < 20) ? "block" : "none";
-            document.getElementById('boost-uses-display').innerText = `Uses left today: ${2-boostUses}/2`;
-            
-            if (premExpiry > Date.now()) {
-                document.getElementById('pay-info').style.display = 'none';
-                document.getElementById('activate-btn').innerText = "✅ ELITE ACTIVE";
+            localStorage.setItem(v + 'bal_' + uid, bal);
+            localStorage.setItem(v + 'eng_' + uid, eng);
+        }
+
+        async function showMonetag() {
+            const btn = document.getElementById('monetag-btn');
+            const now = Date.now();
+            const cooldownEnd = localStorage.getItem(v + 'monetag_expiry_' + uid) || 0;
+
+            if (now < cooldownEnd) {
+                const remaining = Math.ceil((cooldownEnd - now) / 1000);
+                tg.showAlert(`Cooldown; ${remaining} seconds remaining`);
+                return;
             }
-            localStorage.setItem(v+'bal_'+uid, bal);
-            localStorage.setItem(v+'dia_'+uid, dia);
-            localStorage.setItem(v+'tapLvl_'+uid, tapLvl);
-            localStorage.setItem(v+'eng_'+uid, eng);
-        }
 
-        async function sendStatsToBot() {
-            const m = `📊 MILESTONE\nUID: ${uid}\nBal: ${bal}\nDia: ${dia}`;
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({chat_id: uid, text: m}) });
-        }
-
-        async function refillEnergyAd() {
             if (typeof show_10611291 === 'function') {
-                const res = await show_10611291({ telegram_id: uid });
-                if (res?.reward_event_type === 'valued') { eng = 1000; updateUI(); }
+                try {
+                    const res = await show_10611291({ telegram_id: uid });
+                    if (res && res.reward_event_type === 'valued') {
+                        bal += 3000;
+                        updateUI();
+                        tg.showAlert("✅ +3,000 Coins Added!");
+                        const expiry = Date.now() + (90 * 1000);
+                        localStorage.setItem(v + 'monetag_expiry_' + uid, expiry);
+                        runVisualTimer(btn, 90);
+                    } else {
+                        tg.showAlert("Ad skipped or not valued. No reward.");
+                    }
+                } catch (e) { tg.showAlert("Ad failed to load."); }
             }
         }
 
-        async function showMonetagReward() {
-            if (typeof show_10611291 === 'function') {
-                const res = await show_10611291({ telegram_id: uid });
-                if (res?.reward_event_type === 'valued') { 
-                    bal += 3000; updateUI(); 
-                    tg.showAlert("You have been rewarded 3,000 coins!"); 
+        function checkCooldownOnStartup() {
+            const btn = document.getElementById('monetag-btn');
+            const cooldownEnd = localStorage.getItem(v + 'monetag_expiry_' + uid) || 0;
+            const now = Date.now();
+            if (now < cooldownEnd) {
+                const remaining = Math.ceil((cooldownEnd - now) / 1000);
+                runVisualTimer(btn, remaining);
+            }
+        }
+
+        function runVisualTimer(btn, seconds) {
+            btn.classList.add('btn-cooldown');
+            const timer = setInterval(() => {
+                const now = Date.now();
+                const expiry = localStorage.getItem(v + 'monetag_expiry_' + uid);
+                let timeLeft = Math.ceil((expiry - now) / 1000);
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    btn.classList.remove('btn-cooldown');
+                    btn.innerText = "📺 GET FREE 3,000 COINS";
+                } else {
+                    btn.innerText = `WAIT (${timeLeft}s)`;
                 }
-            }
+            }, 1000);
         }
-
-        function initApp() { 
-            checkBoostReset();
-            updateUI(); 
-            if (Math.floor(bal / 5000) > lastMilestone) checkMilestone();
-            setInterval(() => { if (eng < 1000) { eng++; updateUI(); } }, 1000); 
-        }
-
-        function showTab(id, el) { 
-            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active'); el.classList.add('active'); 
-        }
-        function handleAdminTap() { if (++this.taps === 3) { if (prompt("Pass:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; this.taps = 0; } setTimeout(() => this.taps = 0, 2000); }
-        function generateAdminCode() { const s = document.getElementById('adm-suffix').value; const sl = document.getElementById('adm-salt').value; document.getElementById('gen-result').innerText = `DVS-${(parseInt(s)+secretKey).toString(16)}-${(parseInt(sl)*157).toString(16)}-${s}`; }
-        async function requestRedeem() { if (dia < 1) return; let ph = prompt("Phone Number:"); if (ph) { dia--; updateUI(); tg.showAlert("Redemption Sent!"); } }
     </script>
 </body>
 </html>
+
