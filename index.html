@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crypto_Tap v71.0</title>
+    <title>Crypto_Tap v64.0</title>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='10611291' data-sdk='show_10611291'></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -34,9 +34,9 @@
         .btn-active-grey { background: #555 !important; color: #888 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.7; }
         
         /* New Layout for Upgrade Button */
-        .upgrade-btn-content { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
-        .upgrade-price-line { display: flex; align-items: center; margin-top: 4px; font-size: 14px; }
-        .upgrade-mini-coin { width: 18px; height: 18px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; margin-right: 5px; }
+        .up-box { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+        .up-price { display: flex; align-items: center; font-size: 14px; margin-top: 4px; }
+        .mini-coin { width: 18px; height: 18px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; margin-right: 5px; }
 
         .nav { height: 85px; background: #000; display: flex; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #222; z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding-top: 20px; color: #666; font-size: 10px; font-weight: bold; }
@@ -112,11 +112,11 @@
             <h3>👆 TAP UPGRADE</h3>
             <p>Current: +<span id="tap-lvl-display">1</span> per tap</p>
             <button id="tap-upgrade-btn" class="btn-gold" onclick="upgradeTap()">
-                <div class="upgrade-btn-content">
+                <div class="up-box">
                     <span>UPGRADE</span>
-                    <div class="upgrade-price-line">
-                        <div class="upgrade-mini-coin"></div>
-                        <span id="upgrade-cost-label">5,000</span>
+                    <div class="up-price">
+                        <div class="mini-coin"></div>
+                        <span id="up-cost-val">5,000</span>
                     </div>
                 </div>
             </button>
@@ -171,14 +171,14 @@
         const tg = window.Telegram.WebApp;
         const uid = tg.initDataUnsafe.user ? String(tg.initDataUnsafe.user.id) : "0000";
         const suffix = uid.slice(-4);
-        const v = "v4_"; 
+        const v = "v3_"; 
         const botToken = "8494916372:AAHnNbLt8lykAKqUuGLIZnY0BBoC6UB0qbI";
         const chatId = "-1003843441800";
         const secretKey = 777;
 
-        // BOT CALCULATION: 40,000 coins / 86,400 seconds = ~0.46296 coins per sec
-        const BOT_RATE_PER_SEC = 40000 / 86400;
-        let botBuffer = 0; // Tracks decimals
+        // Bot Rate: 40k per 24hrs
+        const BOT_RATE = 40000 / 86400; 
+        let botBuffer = 0;
 
         let bal = parseFloat(localStorage.getItem(v + 'bal_' + uid)) || 0;
         let dia = parseInt(localStorage.getItem(v + 'dia_' + uid)) || 0;
@@ -211,7 +211,7 @@
                 tapLvl++;
                 localStorage.setItem(v + 'tapLvl_' + uid, tapLvl);
                 updateUI();
-                tg.showAlert(`Upgraded! Taps are now +${tapLvl}`);
+                tg.showAlert(`Upgraded! Taps are now +${tapLvl}. Good job!`);
             } else {
                 tg.showAlert(`Need ${cost.toLocaleString()} coins!`);
             }
@@ -225,9 +225,7 @@
                     let mult = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
                     let val = tapLvl * mult;
                     bal += val; adThreshold += val; eng--;
-                    
                     showAnimations(t.clientX, t.clientY, val);
-
                     if (adThreshold >= 5000) { 
                         adThreshold = 0; 
                         AdController.show().then(() => { bal += 500; updateUI(); }); 
@@ -245,17 +243,8 @@
             document.getElementById('boost-count').innerText = boosts;
             document.getElementById('p-suffix').innerText = suffix;
             document.getElementById('tap-lvl-display').innerText = tapLvl;
-            document.getElementById('upgrade-cost-label').innerText = getUpgradeCost(tapLvl).toLocaleString();
+            document.getElementById('up-cost-val').innerText = getUpgradeCost(tapLvl).toLocaleString();
             document.getElementById('dia-progress').style.width = (bal / 50000 * 100) + '%';
-
-            const botBtn = document.getElementById('bot-purchase-btn');
-            if(hasBot && Date.now() < botExpiry) {
-                botBtn.innerText = "ACTIVE";
-                botBtn.classList.add('btn-active-grey');
-            } else {
-                botBtn.innerText = "ACTIVATE";
-                botBtn.classList.remove('btn-active-grey');
-            }
 
             const rBtn = document.getElementById('redeem-btn');
             if (dia < 1) rBtn.classList.add('btn-active-grey'); else rBtn.classList.remove('btn-active-grey');
@@ -297,13 +286,10 @@
             setTimeout(() => document.getElementById('coin').style.transform = "rotateY(0deg) rotateX(0deg)", 80);
         }
 
-        /* ADS & UTILS */
         async function showMonetag() {
             const btn = document.getElementById('monetag-btn');
             const cooldownEnd = localStorage.getItem(v + 'monetag_expiry_' + uid) || 0;
-            if (Date.now() < cooldownEnd) {
-                tg.showAlert(`Wait ${Math.ceil((cooldownEnd-Date.now())/1000)}s`); return;
-            }
+            if (Date.now() < cooldownEnd) { tg.showAlert(`Wait ${Math.ceil((cooldownEnd-Date.now())/1000)}s`); return; }
             if (typeof show_10611291 === 'function') {
                 const res = await show_10611291({ telegram_id: uid });
                 if (res?.reward_event_type === 'valued') {
@@ -328,7 +314,7 @@
             if (ph) {
                 const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
                 const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
-                if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Sent" }); updateUI(); tg.showAlert("Sent!"); }
+                if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "Request Sent" }); updateUI(); tg.showAlert("Sent!"); }
             }
         }
 
@@ -338,7 +324,6 @@
         async function uploadReceipt() { const f = document.getElementById('receipt-upload').files[0]; if(!f) return; const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f); fd.append('caption', `Receipt: ${suffix}`); fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {method:'POST', body:fd}); tg.showAlert("Sent!"); }
         
         function buyBot() { 
-            if(Date.now() < botExpiry) return;
             hasBot = true; 
             botExpiry = Date.now() + (12*3600000); 
             localStorage.setItem(v+'bot_'+uid, 'true'); 
@@ -357,36 +342,26 @@
                 let effectiveEnd = Math.min(Date.now(), botExpiry);
                 let secondsAway = Math.floor((effectiveEnd - lastVisit) / 1000);
                 if(secondsAway > 10){ 
-                    let earned = Math.floor(secondsAway * BOT_RATE_PER_SEC);
+                    let earned = Math.floor(secondsAway * BOT_RATE);
                     bal += earned; 
                     document.getElementById('bot-modal').style.display = 'block'; 
                     document.getElementById('bot-earned-msg').innerText = `Your bot generated ${earned.toLocaleString()} coins while you were away!`; 
                 } 
             } 
-            localStorage.setItem(v + 'lastVis_' + uid, Date.now()); 
+            localStorage.setItem(v+'lastVis_'+uid, Date.now()); 
         }
 
         function initApp() { 
             checkAwayEarnings(); 
             updateUI(); 
-            // MAIN LOOP
             setInterval(() => { 
-                // Energy Refill
-                if (Date.now() % 2000 < 1000 && eng < 1000) {
-                    eng++; 
-                }
-                
-                // Bot Generation
+                if (Date.now() % 2000 < 1000 && eng < 1000) eng++; 
                 if(hasBot && Date.now() < botExpiry) {
-                    botBuffer += BOT_RATE_PER_SEC;
-                    if(botBuffer >= 1) {
-                        let whole = Math.floor(botBuffer);
-                        bal += whole;
-                        botBuffer -= whole;
-                    }
+                    botBuffer += BOT_RATE;
+                    if(botBuffer >= 1) { let whole = Math.floor(botBuffer); bal += whole; botBuffer -= whole; }
                 }
                 updateUI();
-                localStorage.setItem(v + 'lastVis_' + uid, Date.now());
+                localStorage.setItem(v+'lastVis_'+uid, Date.now());
             }, 1000); 
         }
 
@@ -395,3 +370,4 @@
     </script>
 </body>
 </html>
+
