@@ -33,7 +33,6 @@
         .btn-gold { background: linear-gradient(135deg, var(--gold), #bf9524); color: #221a04; padding: 16px; border-radius: 15px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
         .btn-active-grey { background: #555 !important; color: #888 !important; cursor: not-allowed !important; filter: grayscale(1); opacity: 0.7; }
         
-        /* New Layout for Upgrade Button */
         .up-box { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
         .up-price { display: flex; align-items: center; font-size: 14px; margin-top: 4px; }
         .mini-coin { width: 18px; height: 18px; border-radius: 50%; background: url('https://raw.githubusercontent.com/princedavis010-gif/Prince/refs/heads/main/IMG-20260212-WA0024.jpg') center/cover; margin-right: 5px; }
@@ -135,7 +134,7 @@
     <div id="premium" class="container">
         <h2 style="color:var(--gold);">PREMIUM SHOP</h2>
         <div class="glass-card">
-            <p style="color:var(--gold); font-weight:bold; font-size:24px;">ID: <span id="p-suffix">--</span></p>
+            <p style="color:var(--gold); font-weight:bold; font-size:24px; cursor:pointer;" onclick="window.open('https://t.me/ogprincedavis5081')">ID: <span id="p-suffix">--</span></p>
             <p>Premium Sub (20x Tap) | ₦200</p>
             <p>OPay: <b>8124647818</b></p>
             <label for="receipt-upload" class="btn-gold" style="display: block; cursor: pointer; text-align: center;"> 📁 UPLOAD RECEIPT </label>
@@ -176,8 +175,8 @@
         const chatId = "-1003843441800";
         const secretKey = 777;
 
-        // Bot Rate: 40k per 24hrs
-        const BOT_RATE = 40000 / 86400; 
+        // Exactly 40,000 coins / 86,400 seconds
+        const BOT_RATE = 40000 / 86400;
         let botBuffer = 0;
 
         let bal = parseFloat(localStorage.getItem(v + 'bal_' + uid)) || 0;
@@ -211,7 +210,7 @@
                 tapLvl++;
                 localStorage.setItem(v + 'tapLvl_' + uid, tapLvl);
                 updateUI();
-                tg.showAlert(`Upgraded! Taps are now +${tapLvl}. Good job!`);
+                tg.showAlert(`Upgraded! Taps are now +${tapLvl}`);
             } else {
                 tg.showAlert(`Need ${cost.toLocaleString()} coins!`);
             }
@@ -226,10 +225,7 @@
                     let val = tapLvl * mult;
                     bal += val; adThreshold += val; eng--;
                     showAnimations(t.clientX, t.clientY, val);
-                    if (adThreshold >= 5000) { 
-                        adThreshold = 0; 
-                        AdController.show().then(() => { bal += 500; updateUI(); }); 
-                    }
+                    if (adThreshold >= 5000) { adThreshold = 0; AdController.show().then(() => { bal += 500; updateUI(); }); }
                 }
             });
             updateUI();
@@ -309,12 +305,12 @@
         }
 
         async function requestRedeem() {
-            if (dia < 1) return;
+            if (dia < 1) { tg.showAlert("Oops! You don't have enough diamonds to redeem for airtime. Keep tapping to reach 50,000 coins and get a diamond!"); return; }
             let ph = prompt("Enter phone number for ₦100 Airtime:");
             if (ph) {
                 const m = `🚨 REDEEM\n🆔 Suffix: ${suffix}\n📞 Phone: ${ph}\n👤 User: ${uid}`;
                 const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: m }) });
-                if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "Request Sent" }); updateUI(); tg.showAlert("Sent!"); }
+                if (r.ok) { dia--; txs.unshift({ date: new Date().toLocaleTimeString(), status: "₦100 Sent" }); updateUI(); tg.showAlert("Sent!"); }
             }
         }
 
@@ -345,10 +341,9 @@
                     let earned = Math.floor(secondsAway * BOT_RATE);
                     bal += earned; 
                     document.getElementById('bot-modal').style.display = 'block'; 
-                    document.getElementById('bot-earned-msg').innerText = `Your bot generated ${earned.toLocaleString()} coins while you were away!`; 
+                    document.getElementById('bot-earned-msg').innerText = `Your bot earned ${earned.toLocaleString()} coins while you were away!`; 
                 } 
             } 
-            localStorage.setItem(v+'lastVis_'+uid, Date.now()); 
         }
 
         function initApp() { 
@@ -361,7 +356,7 @@
                     if(botBuffer >= 1) { let whole = Math.floor(botBuffer); bal += whole; botBuffer -= whole; }
                 }
                 updateUI();
-                localStorage.setItem(v+'lastVis_'+uid, Date.now());
+                localStorage.setItem(v + 'lastVis_' + uid, Date.now());
             }, 1000); 
         }
 
@@ -370,4 +365,3 @@
     </script>
 </body>
 </html>
-
