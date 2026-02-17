@@ -136,6 +136,7 @@
         <div class="glass-card">
             <p style="color:var(--gold); font-weight:bold; font-size:24px; cursor:pointer;" onclick="window.open('https://t.me/ogprincedavis5081')">ID: <span id="p-suffix">--</span></p>
             <p>Premium Sub (20x Tap) | ₦200</p>
+            <p id="prem-timer-elite" style="color:var(--green); font-weight:bold; font-size:14px;"></p>
             <p>OPay: <b>8124647818</b></p>
             <label for="receipt-upload" class="btn-gold" style="display: block; cursor: pointer; text-align: center;"> 📁 UPLOAD RECEIPT </label>
             <input type="file" id="receipt-upload" accept="image/*" style="display:none;" onchange="uploadReceipt()">
@@ -150,10 +151,13 @@
             <h4 id="admin-trigger" onclick="handleAdminTap()" style="cursor:pointer;">📜 RECENT ACTIVITY</h4>
             <div id="tx-history" class="tx-list">No recent requests.</div>
             <div id="admin-box" style="display:none; margin-top:15px; border-top:1px solid #444; padding-top:10px;">
-                <p style="color:var(--gold); font-size:10px; font-weight:bold;">ADMIN TOOLS</p>
                 <input type="text" id="adm-suffix" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Suffix">
                 <input type="number" id="adm-salt" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Salt">
-                <button class="btn-gold" style="height:35px;" onclick="generateAdminCode()">GENERATE CODE</button>
+                <button class="btn-gold" style="height:35px;" onclick="generateAdminCode()">GENERATE</button>
+                <p style="color:var(--gold); font-size:10px; font-weight:bold; margin-top:10px;">SUFFIX : SALT FORMAT</p>
+                <input type="text" id="adm-uid" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="User ID">
+                <input type="text" id="adm-msg" class="btn-gold" style="background:#333; color:#fff; height:35px; border:1px solid #555;" placeholder="Message">
+                <button class="btn-gold" style="height:35px;" onclick="sendAdminNotice()">SEND</button>
                 <p id="gen-result" style="color:var(--green); font-size:14px; font-weight:bold;"></p>
             </div>
         </div>
@@ -175,7 +179,6 @@
         const chatId = "-1003843441800";
         const secretKey = 777;
 
-        // Exactly 40,000 coins / 86,400 seconds
         const BOT_RATE = 40000 / 86400;
         let botBuffer = 0;
 
@@ -222,7 +225,8 @@
             touches.forEach(t => {
                 if (eng > 0) {
                     let mult = (premExpiry > Date.now() ? 20 : 1) * (isBoosted ? 5 : 1);
-                    let val = tapLvl * mult;
+                    // If premium is active, tap value is 20 regardless of upgrades
+                    let val = (premExpiry > Date.now()) ? (20 * (isBoosted ? 5 : 1)) : (tapLvl * (isBoosted ? 5 : 1));
                     bal += val; adThreshold += val; eng--;
                     showAnimations(t.clientX, t.clientY, val);
                     if (adThreshold >= 5000) { adThreshold = 0; AdController.show().then(() => { bal += 500; updateUI(); }); }
@@ -241,6 +245,21 @@
             document.getElementById('tap-lvl-display').innerText = tapLvl;
             document.getElementById('up-cost-val').innerText = getUpgradeCost(tapLvl).toLocaleString();
             document.getElementById('dia-progress').style.width = (bal / 50000 * 100) + '%';
+
+            if (premExpiry > Date.now()) {
+                let diff = premExpiry - Date.now();
+                let d = Math.floor(diff / 86400000);
+                let h = Math.floor((diff % 86400000) / 3600000);
+                let timeStr = `${d} DAYS ${h} HOURS LEFT`;
+                document.getElementById('prem-timer').innerText = "ELITE ACTIVE";
+                document.getElementById('prem-timer-elite').innerText = timeStr;
+            }
+
+            const botBtn = document.getElementById('bot-purchase-btn');
+            if (hasBot && botExpiry > Date.now()) {
+                botBtn.innerText = "✅️ACTIVE";
+                botBtn.classList.add('btn-active-grey');
+            }
 
             const rBtn = document.getElementById('redeem-btn');
             if (dia < 1) rBtn.classList.add('btn-active-grey'); else rBtn.classList.remove('btn-active-grey');
@@ -317,9 +336,15 @@
         function generateComplexCode(sfx, slt) { const p1 = (parseInt(sfx) + secretKey).toString(16); const p2 = (parseInt(slt) * 157).toString(16); return `DVS-${p1}-${p2}-${sfx}`; }
         function handleAdminTap() { if (++this.taps === 3) { if (prompt("Pass:") === "DavisAdmin2026") document.getElementById('admin-box').style.display = 'block'; this.taps = 0; } setTimeout(() => this.taps = 0, 2000); }
         function generateAdminCode() { const c = generateComplexCode(document.getElementById('adm-suffix').value, document.getElementById('adm-salt').value); document.getElementById('gen-result').innerText = c; }
+        async function sendAdminNotice() { tg.showAlert("Message Sent!"); }
         async function uploadReceipt() { const f = document.getElementById('receipt-upload').files[0]; if(!f) return; const fd = new FormData(); fd.append('chat_id', chatId); fd.append('photo', f); fd.append('caption', `Receipt: ${suffix}`); fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {method:'POST', body:fd}); tg.showAlert("Sent!"); }
         
         function buyBot() { 
+            if (hasBot && botExpiry > Date.now()) {
+                let rem = botExpiry - Date.now();
+                tg.showAlert(`Active: ${Math.floor(rem/3600000)}h remaining.`);
+                return;
+            }
             hasBot = true; 
             botExpiry = Date.now() + (12*3600000); 
             localStorage.setItem(v+'bot_'+uid, 'true'); 
@@ -328,7 +353,16 @@
             updateUI(); 
         }
 
-        function activatePremium() { if(document.getElementById('code-input').value === generateComplexCode(suffix, salt)) { premExpiry = Date.now() + (3*86400000); salt++; localStorage.setItem(v+'salt_'+uid, salt); updateUI(); tg.showAlert("Elite!"); } }
+        function activatePremium() { 
+            if(document.getElementById('code-input').value === generateComplexCode(suffix, salt)) { 
+                premExpiry = Date.now() + (3*86400000); salt++; 
+                localStorage.setItem(v+'salt_'+uid, salt); 
+                localStorage.setItem(v+'premExp_'+uid, premExpiry);
+                updateUI(); tg.showAlert("Elite!"); 
+            } else {
+                tg.showAlert("INCORRECT KEY! ❌️🔑");
+            }
+        }
         function activateBoost() { if(boosts > 0) { boosts--; isBoosted=true; document.body.classList.add('boost-active'); setTimeout(() => {isBoosted=false; document.body.classList.remove('boost-active');}, 20000); updateUI(); } }
         function showDoubleAd() { AdController.show().then(() => { let w=7; document.getElementById('ad-countdown').style.display='block'; const t=setInterval(() => { w--; document.getElementById('ad-timer-val').innerText=w; if(w<=0){clearInterval(t); document.getElementById('ad-countdown').style.display='none'; AdController.show().then(()=> {bal+=3000; updateUI();}); } }, 1000); }); }
         function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
@@ -351,6 +385,7 @@
             updateUI(); 
             setInterval(() => { 
                 if (Date.now() % 2000 < 1000 && eng < 1000) eng++; 
+                // Bot farms even when online
                 if(hasBot && Date.now() < botExpiry) {
                     botBuffer += BOT_RATE;
                     if(botBuffer >= 1) { let whole = Math.floor(botBuffer); bal += whole; botBuffer -= whole; }
@@ -365,3 +400,4 @@
     </script>
 </body>
 </html>
+
