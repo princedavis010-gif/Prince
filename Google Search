@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-image: linear-gradient(to right, honeydew, papayawhip);
+        }
+
+        #searchBar {
+            background-image: linear-gradient(to right, papayawhip 10%, honeydew );
+            border: none;
+            outline: none;
+            border-radius: 60px;
+            padding: 6px;
+            width: 90px;
+            font-family: inherit;
+            transition: 1s;
+            box-shadow: 1px 1px 5px black;
+        }
+
+        #searchBar:hover {
+            width: 200px;
+            background-image: linear-gradient(to left, honeydew, papayawhip);
+            box-shadow: 3px 2px 3px black;
+        }
+
+        #searchBar::placeholder {
+            opacity: 0.4;
+        }
+
+        #subMit {
+            background-image: linear-gradient(to left, honeydew, papayawhip);
+            border: none;
+            padding: 9px;
+            border-radius: 30px;
+            box-shadow: 1px 1px 2px black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1> Prince Davis Webpage</h1>
+    <form action="http://www.google.com/search" target="_blank">
+        <input type="text" autocomplete="off" id="searchBar" placeholder="Search" name="q">
+        <input id="subMit" type="submit" value="Go">
+    </form>
+</body>
+
+</html>
