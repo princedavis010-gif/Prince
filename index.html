@@ -9,7 +9,7 @@
         }
 
         #searchBar {
-            background-image: linear-gradient(to right, papayawhip 10%, honeydew );
+            background-image: linear-gradient(to right, papayawhip 10%, honeydew);
             border: none;
             outline: none;
             border-radius: 60px;
@@ -20,7 +20,7 @@
             box-shadow: 1px 1px 5px black;
         }
 
-        #searchBar:hover {
+        #searchBar:hover, #searchBar:focus {
             width: 200px;
             background-image: linear-gradient(to left, honeydew, papayawhip);
             box-shadow: 3px 2px 3px black;
@@ -42,10 +42,28 @@
 
 <body>
     <h1> Prince Davis Webpage</h1>
-    <form action="http://www.google.com/search" target="_blank">
-        <input type="text" autocomplete="off" id="searchBar" placeholder="Search" name="q">
-        <input id="subMit" type="submit" value="Go">
-    </form>
+
+    <input type="text" autocomplete="off" id="searchBar" placeholder="Search" name="q" onkeydown="handleKeyPress(event)">
+    <input id="subMit" type="button" value="Go" onclick="performSearch()">
+
+    <script>
+        function performSearch() {
+            const query = document.getElementById('searchBar').value;
+
+            if (query.trim() !== "") {
+
+                const googleUrl = "https://www.google.com/search?q=" + encodeURIComponent(query);
+                window.open(googleUrl, '_blank');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                performSearch();
+            }
+        }
+    </script>
+
 </body>
 
 </html>
