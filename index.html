@@ -1,69 +1,341 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>P2P Call, Chat & Contacts</title>
     <style>
-        body {
-            background-image: linear-gradient(to right, honeydew, papayawhip);
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #e5ddd5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; position: fixed; }
+        
+        /* Master container locked precisely to 2 screens wide */
+        .viewport { display: flex; width: 200vw; height: 100%; transition: transform 0.3s ease-out; touch-action: pan-y; }
+        
+        /* Each individual panel fills the phone screen exactly */
+        .screen { width: 100vw; height: 100%; display: flex; flex-direction: column; padding: 20px; position: relative; justify-content: flex-start; align-items: center; overflow-y: auto; }
+        
+        /* UI Components */
+        .card { width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        h2 { color: #075e54; margin-bottom: 5px; text-align: center; }
+        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 15px; }
+        
+        .id-box { background: #f0f0f0; padding: 12px; font-weight: bold; font-size: 28px; border-radius: 5px; margin: 10px 0; border: 2px solid #25D366; letter-spacing: 2px; color: #075e54; text-align: center; }
+        .timer { font-size: 36px; font-weight: bold; color: #075e54; margin: 10px 0; display: none; font-family: monospace; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 25px; text-align: center; font-size: 16px; outline: none; }
+        
+        .btn { width: 100%; padding: 12px; font-size: 16px; margin: 6px 0; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .call-btn { background: #25D366; color: white; }
+        .hang-btn { background: #ea0038; color: white; }
+        .status { margin: 5px 0; font-style: italic; color: #666; text-align: center; }
+        
+        /* Floating Navigation Dots */
+        .nav-dots { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100; }
+        .dot { width: 10px; height: 10px; background: rgba(0,0,0,0.2); border-radius: 50%; transition: 0.3s; }
+        .dot.active { background: #075e54; width: 22px; border-radius: 5px; }
 
-        #searchBar {
-            background-image: linear-gradient(to right, papayawhip 10%, honeydew);
-            border: none;
-            outline: none;
-            border-radius: 60px;
-            padding: 6px;
-            width: 90px;
-            font-family: inherit;
-            transition: 1s;
-            box-shadow: 1px 1px 5px black;
-        }
+        /* Contact Book UI Layout */
+        .contact-list { max-height: 200px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid #eee; }
+        .contact-item:hover { background: #f0f0f0; }
+        .contact-info { display: flex; flex-direction: column; text-align: left; }
+        .contact-name { font-weight: bold; color: #333; }
+        .contact-id { font-size: 12px; color: #666; }
+        .tap-action { color: #075e54; font-weight: bold; font-size: 14px; }
 
-        #searchBar:hover, #searchBar:focus {
-            width: 200px;
-            background-image: linear-gradient(to left, honeydew, papayawhip);
-            box-shadow: 3px 2px 3px black;
-        }
+        /* Full Screen Chat Component Box */
+        .chat-container { width: 100%; max-width: 400px; height: 85vh; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        .chat-header { background: #075e54; color: white; padding: 15px; text-align: center; }
+        .messages-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #efeae2; }
+        
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 10px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .msg.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
+        .msg.received { background: white; align-self: flex-start; border-top-left-radius: 0; }
+        
+        .chat-input-area { display: flex; background: white; padding: 10px; border-top: 1px solid #ddd; }
+        .chat-input-area input { margin: 0; padding: 12px; border-radius: 25px; text-align: left; }
+        .send-btn { background: #075e54; color: white; border: none; padding: 0 20px; border-radius: 25px; margin-left: 8px; font-weight: bold; cursor: pointer; }
 
-        #searchBar::placeholder {
-            opacity: 0.4;
-        }
-
-        #subMit {
-            background-image: linear-gradient(to left, honeydew, papayawhip);
-            border: none;
-            padding: 9px;
-            border-radius: 30px;
-            box-shadow: 1px 1px 2px black;
-        }
+        /* Full Screen Incoming Overlay */
+        .incoming-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #075e54; color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
+        .incoming-overlay h3 { font-size: 26px; margin-bottom: 5px; }
+        .action-btns { display: flex; width: 80%; justify-content: space-around; margin-top: 40px; }
+        .action-btn { width: 75px; height: 75px; border-radius: 50%; border: none; font-size: 26px; cursor: pointer; }
+        .accept-btn { background: #25D366; color: white; }
+        .decline-btn { background: #ea0038; color: white; }
     </style>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
-
 <body>
-    <h1> Prince Davis Webpage</h1>
 
-    <input type="text" autocomplete="off" id="searchBar" placeholder="Search" name="q" onkeydown="handleKeyPress(event)">
-    <input id="subMit" type="button" value="Go" onclick="performSearch()">
+<div class="nav-dots">
+    <div class="dot active" id="dot0"></div>
+    <div class="dot" id="dot1"></div>
+</div>
 
-    <script>
-        function performSearch() {
-            const query = document.getElementById('searchBar').value;
+<div class="incoming-overlay" id="incoming-screen">
+    <h3>Incoming Call...</h3>
+    <p>ID: <span id="caller-id-display">------</span></p>
+    <div class="action-btns">
+        <button class="action-btn accept-btn" id="accept-btn">📞</button>
+        <button class="action-btn decline-btn" id="decline-btn">🚫</button>
+    </div>
+</div>
 
-            if (query.trim() !== "") {
+<div class="viewport" id="viewport">
+    
+    <div class="screen">
+        <div class="card" style="margin-top: 10px;">
+            <h2>Voice Calling</h2>
+            <p class="subtitle">Swipe Left for Chat ➡️</p>
+            <div class="status" id="status">Connecting...</div>
+            <div class="timer" id="timer">00:00</div>
+            <div>Your Permanent Call ID:</div>
+            <div class="id-box" id="my-id">------</div>
+            <input type="text" id="remote-id" placeholder="Enter 6-digit ID to dial">
+            <button class="btn call-btn" id="call-btn">📞 Start Call</button>
+            <button class="btn hang-btn" id="hang-btn" style="display:none;">🚫 End Call</button>
+        </div>
 
-                const googleUrl = "https://www.google.com/search?q=" + encodeURIComponent(query);
-                window.open(googleUrl, '_blank');
-            }
+        <div class="card">
+            <h3 style="color:#075e54; font-size:16px; margin-bottom:5px;">Contacts</h3>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="new-name" placeholder="Name" style="padding:8px; font-size:14px;">
+                <input type="text" id="new-id" placeholder="6-Digit ID" style="padding:8px; font-size:14px;">
+            </div>
+            <button class="btn call-btn" id="add-contact-btn" style="padding:8px; font-size:14px; margin:5px 0 0 0;">Add Contact</button>
+            
+            <div class="contact-list" id="contact-list-container">
+                </div>
+        </div>
+        <audio id="remote-audio" autoplay></audio>
+    </div>
+
+    <div class="screen">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3 style="margin:0; font-size:18px;" id="chat-header-title">Instant Text Chat</h3>
+                <span style="font-size:12px; opacity:0.8;">⬅️ Swipe Right for Call / Contacts</span>
+            </div>
+            <div style="padding: 10px; background: #f0f0f0;">
+                <input type="text" id="chat-target-id" placeholder="Active Recipient ID" style="background: white;" readonly>
+            </div>
+            <div class="messages-container" id="messages-container"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-message" placeholder="Type a message...">
+                <button class="send-btn" id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let peer, localStream, currentCall, dataConn;
+    let timerInterval, totalSeconds = 0;
+    let currentScreenIndex = 0;
+
+    const viewport = document.getElementById('viewport');
+    const statusDiv = document.getElementById('status'), myIdDiv = document.getElementById('my-id'), remoteIdInput = document.getElementById('remote-id'), callBtn = document.getElementById('call-btn'), hangBtn = document.getElementById('hang-btn'), remoteAudio = document.getElementById('remote-audio'), timerDiv = document.getElementById('timer');
+    const incomingScreen = document.getElementById('incoming-screen'), callerIdDisplay = document.getElementById('caller-id-display'), acceptBtn = document.getElementById('accept-btn'), declineBtn = document.getElementById('decline-btn');
+    const chatTargetInput = document.getElementById('chat-target-id'), messageInput = document.getElementById('chat-message'), sendBtn = document.getElementById('send-btn'), messagesContainer = document.getElementById('messages-container'), chatHeaderTitle = document.getElementById('chat-header-title');
+    
+    // Contact Elements
+    const nameInput = document.getElementById('new-name'), idInput = document.getElementById('new-id'), addContactBtn = document.getElementById('add-contact-btn'), contactListContainer = document.getElementById('contact-list-container');
+
+    if ("Notification" in window) { Notification.requestPermission(); }
+
+    let memorableId = localStorage.getItem('my_web_call_id');
+    if (!memorableId) {
+        memorableId = Math.floor(100000 + Math.random() * 900000).toString();
+        localStorage.setItem('my_web_call_id', memorableId);
+    }
+
+    peer = new Peer(memorableId);
+    peer.on('open', (id) => { myIdDiv.innerText = id; statusDiv.innerText = "Ready to make or receive calls."; });
+    peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+            let freshId = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('my_web_call_id', freshId);
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    });
+
+    // --- CONTACT BOOK STORAGE FUNCTIONS ---
+    let contacts = JSON.parse(localStorage.getItem('my_call_contacts')) || [];
+
+    function renderContacts() {
+        contactListContainer.innerHTML = '';
+        if(contacts.length === 0) {
+            contactListContainer.innerHTML = '<div style="text-align:center; color:#999; font-size:14px; padding:10px;">No contacts saved yet.</div>';
+            return;
+        }
+        contacts.forEach((contact, index) => {
+            const item = document.createElement('div');
+            item.classList.add('contact-item');
+            item.innerHTML = `
+                <div class="contact-info">
+                    <span class="contact-name">${contact.name}</span>
+                    <span class="contact-id">ID: ${contact.id}</span>
+                </div>
+                <span class="tap-action">💬 Text</span>
+            `;
+            // TAP ACTION: Auto fill configurations and swipe over to text instantly
+            item.addEventListener('click', () => {
+                chatTargetInput.value = contact.id;
+                remoteIdInput.value = contact.id; // Also auto-fills the dial pad for easy access
+                chatHeaderTitle.innerText = `Chat with ${contact.name}`;
+                currentScreenIndex = 1;
+                updateViewportPosition();
+            });
+            contactListContainer.appendChild(item);
+        });
+    }
+
+    addContactBtn.addEventListener('click', () => {
+        const name = nameInput.value.trim();
+        const id = idInput.value.trim();
+        if(!name || id.length !== 6) return alert("Enter a valid Name and 6-Digit ID!");
+        
+        contacts.push({ name, id });
+        localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+        nameInput.value = '';
+        idInput.value = '';
+        renderContacts();
+    });
+
+    // Run layout loading initial pass
+    renderContacts();
+
+    // --- LOCKED SWIPE HANDLING ---
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    window.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+    window.addEventListener('touchend', e => { 
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+    }, {passive: true});
+
+    function handleSwipeGesture() {
+        if (touchStartX - touchEndX > 60 && currentScreenIndex === 0) {
+            currentScreenIndex = 1;
+        } else if (touchEndX - touchStartX > 60 && currentScreenIndex === 1) {
+            currentScreenIndex = 0;
+        }
+        updateViewportPosition();
+    }
+
+    function updateViewportPosition() {
+        viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
+        document.getElementById('dot0').classList.toggle('active', currentScreenIndex === 0);
+        document.getElementById('dot1').classList.toggle('active', currentScreenIndex === 1);
+    }
+
+    // --- VOICE CALL HANDLING ---
+    peer.on('call', (call) => {
+        currentCall = call;
+        callerIdDisplay.innerText = call.peer;
+        incomingScreen.style.display = 'flex';
+        if (Notification.permission === "granted" && document.hidden) {
+            new Notification("Incoming Call", { body: `User ${call.peer} is calling you!` });
         }
 
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-                performSearch();
-            }
-        }
-    </script>
+        acceptBtn.onclick = async () => {
+            incomingScreen.style.display = 'none';
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                call.answer(localStream);
+                statusDiv.innerText = "Call connected.";
+                toggleButtons(true);
+                startTimer();
+                call.on('stream', (remoteStream) => { remoteAudio.srcObject = remoteStream; });
+                call.on('close', () => endCallUi());
+            } catch (err) { statusDiv.innerText = "Call failed."; call.close(); }
+        };
+        declineBtn.onclick = () => { incomingScreen.style.display = 'none'; statusDiv.innerText = "Call declined."; call.close(); };
+    });
 
+    callBtn.addEventListener('click', async () => {
+        const friendId = remoteIdInput.value.trim();
+        if (!friendId || friendId.length !== 6) return alert("Please enter a valid 6-digit ID!");
+        statusDiv.innerText = "Calling...";
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            currentCall = peer.call(friendId, localStream);
+            toggleButtons(true);
+            currentCall.on('stream', (remoteStream) => {
+                remoteAudio.srcObject = remoteStream;
+                if (totalSeconds === 0) { statusDiv.innerText = "Call connected."; startTimer(); }
+            });
+            currentCall.on('close', () => endCallUi());
+        } catch (err) { statusDiv.innerText = "Mic access denied."; }
+    });
+
+    hangBtn.addEventListener('click', () => { if (currentCall) currentCall.close(); endCallUi(); });
+
+    // --- TEXT DATA HANDLING ---
+    peer.on('connection', (conn) => {
+        dataConn = conn;
+        setupDataListeners();
+    });
+
+    sendBtn.addEventListener('click', () => {
+        const targetId = chatTargetInput.value.trim();
+        const msgText = messageInput.value.trim();
+        if (!targetId || !msgText) return alert("Select a contact or enter a target ID first!");
+
+        if (!dataConn || dataConn.peer !== targetId) {
+            dataConn = peer.connect(targetId);
+            dataConn.on('open', () => { sendMessagePayload(msgText); setupDataListeners(); });
+        } else {
+            sendMessagePayload(msgText);
+        }
+    });
+
+    function sendMessagePayload(msg) {
+        dataConn.send(msg);
+        appendMessage(msg, 'sent');
+        messageInput.value = '';
+    }
+
+    function setupDataListeners() {
+        dataConn.on('data', (data) => {
+            appendMessage(data, 'received');
+            chatTargetInput.value = dataConn.peer;
+            
+            // Check matching local contact details to update header title dynamically
+            const matchingContact = contacts.find(c => c.id === dataConn.peer);
+            chatHeaderTitle.innerText = matchingContact ? `Chat with ${matchingContact.name}` : `Chat with ${dataConn.peer}`;
+
+            if (Notification.permission === "granted" && document.hidden) {
+                new Notification("New Message", { body: matchingContact ? `${matchingContact.name}: ${data}` : `ID ${dataConn.peer}: ${data}` });
+            }
+        });
+    }
+
+    function appendMessage(text, type) {
+        const msgElement = document.createElement('div');
+        msgElement.classList.add('msg', type);
+        msgElement.innerText = text;
+        messagesContainer.appendChild(msgElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function startTimer() {
+        stopTimer(); totalSeconds = 0; timerDiv.innerText = "00:00"; timerDiv.style.display = "block";
+        timerInterval = setInterval(() => {
+            totalSeconds++;
+            let minutes = Math.floor(totalSeconds / 60), seconds = totalSeconds % 60;
+            timerDiv.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); timerDiv.style.display = "none"; }
+    function toggleButtons(isCalling) {
+        callBtn.style.display = isCalling ? 'none' : 'block';
+        remoteIdInput.style.display = isCalling ? 'none' : 'block';
+        hangBtn.style.display = isCalling ? 'block' : 'none';
+    }
+    function endCallUi() { stopTimer(); incomingScreen.style.display = 'none'; if (localStream) localStream.getTracks().forEach(track => track.stop()); statusDiv.innerText = "Call ended."; toggleButtons(false); }
+</script>
 </body>
-
 </html>
