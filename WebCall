@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeerJS Voice Call</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding-top: 40px; background: #e5ddd5; color: #333; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #075e54; margin-bottom: 5px; }
+        .id-box { background: #f0f0f0; padding: 10px; font-weight: bold; font-size: 18px; border-radius: 5px; margin: 15px 0; border: 1px dashed #075e54; }
+        input { width: 80%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 25px; text-align: center; font-size: 16px; }
+        .btn { width: 85%; padding: 12px; font-size: 16px; margin: 8px 0; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .call-btn { background: #25D366; color: white; }
+        .call-btn:hover { background: #20ba5a; }
+        .hang-btn { background: #ea0038; color: white; }
+        .status { margin: 15px 0; font-style: italic; color: #666; }
+    </style>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>Web Calling</h2>
+    <p>Your WhatsApp-like P2P Voice Call</p>
+    
+    <div class="status" id="status">Connecting to network...</div>
+    
+    <div>Your Call ID:</div>
+    <div class="id-box" id="my-id">Generating...</div>
+
+    <input type="text" id="remote-id" placeholder="Enter friend's Call ID">
+    <button class="btn call-btn" id="call-btn">📞 Start Call</button>
+    <button class="btn hang-btn" id="hang-btn" style="display:none;">🚫 End Call</button>
+    
+    <audio id="remote-audio" autoplay></audio>
+</div>
+
+<script>
+    let peer;
+    let localStream;
+    let currentCall;
+
+    const statusDiv = document.getElementById('status');
+    const myIdDiv = document.getElementById('my-id');
+    const remoteIdInput = document.getElementById('remote-id');
+    const callBtn = document.getElementById('call-btn');
+    const hangBtn = document.getElementById('hang-btn');
+    const remoteAudio = document.getElementById('remote-audio');
+
+    // 1. Initialize PeerJS (Automatically connects to free cloud signaling server)
+    peer = new Peer();
+
+    // Display your unique ID when connected
+    peer.on('open', (id) => {
+        myIdDiv.innerText = id;
+        statusDiv.innerText = "Ready to make or receive calls.";
+    });
+
+    // 2. Handle INCOMING calls
+    peer.on('call', async (call) => {
+        statusDiv.innerText = "Incoming call...";
+        
+        // Ask browser for microphone permission to answer
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            currentCall = call;
+            
+            // Answer the call and send our audio back
+            call.answer(localStream);
+            statusDiv.innerText = "Call connected.";
+            toggleButtons(true);
+
+            // Receive their audio stream
+            call.on('stream', (remoteStream) => {
+                remoteAudio.srcObject = remoteStream;
+            });
+
+            call.on('close', () => endCallUi());
+        } catch (err) {
+            alert("Microphone access denied or unavailable.");
+            statusDiv.innerText = "Call failed: Mic required.";
+        }
+    });
+
+    // 3. Handle OUTGOING calls
+    callBtn.addEventListener('click', async () => {
+        const friendId = remoteIdInput.value.trim();
+        if (!friendId) return alert("Please enter your friend's ID first!");
+
+        statusDiv.innerText = "Calling...";
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // Initiate the call to the friend's ID
+            currentCall = peer.call(friendId, localStream);
+            toggleButtons(true);
+
+            // Receive their audio stream when they answer
+            currentCall.on('stream', (remoteStream) => {
+                remoteAudio.srcObject = remoteStream;
+                statusDiv.innerText = "Call connected.";
+            });
+
+            currentCall.on('close', () => endCallUi());
+        } catch (err) {
+            alert("Microphone access denied.");
+            statusDiv.innerText = "Call failed.";
+        }
+    });
+
+    // 4. Hang up functionality
+    hangBtn.addEventListener('click', () => {
+        if (currentCall) currentCall.close();
+        endCallUi();
+    });
+
+    function toggleButtons(isCalling) {
+        callBtn.style.display = isCalling ? 'none' : 'block';
+        remoteIdInput.style.display = isCalling ? 'none' : 'block';
+        hangBtn.style.display = isCalling ? 'block' : 'none';
+    }
+
+    function endCallUi() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop()); // Turn off microphone
+        }
+        statusDiv.innerText = "Call ended.";
+        toggleButtons(false);
+    }
+</script>
+
+</body>
+</html>
+
