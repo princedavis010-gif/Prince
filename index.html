@@ -24,19 +24,20 @@
         .hang-btn { background: #ea0038; color: white; }
         .status { margin: 5px 0; font-style: italic; color: #666; text-align: center; }
         
-        .nav-dots { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100; }
-        .dot { width: 10px; height: 10px; background: rgba(0,0,0,0.2); border-radius: 50%; transition: 0.3s; }
-        .dot.active { background: #075e54; width: 22px; border-radius: 5px; }
+        /* Interactive Nav Dots Setup */
+        .nav-dots { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; background: rgba(255, 255, 255, 0.6); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(5px); }
+        .dot { width: 12px; height: 12px; background: rgba(0,0,0,0.3); border-radius: 50%; transition: 0.3s; cursor: pointer; }
+        .dot:hover { background: rgba(0,0,0,0.5); }
+        .dot.active { background: #075e54; width: 26px; border-radius: 6px; }
 
         .contact-list { max-height: 200px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid #eee; }
+        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid #eee; position: relative; }
         .contact-item:hover { background: #f0f0f0; }
-        .contact-info { display: flex; flex-direction: column; text-align: left; }
+        .contact-info { display: flex; flex-direction: column; text-align: left; width: 75%; }
         .contact-name { font-weight: bold; color: #333; }
-        .contact-id { font-size: 12px; color: #666; }
-        .tap-action { color: #075e54; font-weight: bold; font-size: 14px; }
+        .contact-id { font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badge-pill { background: #25D366; color: white; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; display: none; }
 
-        /* Full Screen Chat Container */
         .chat-container { width: 100%; max-width: 400px; height: 85vh; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
         .chat-header { background: #075e54; color: white; padding: 15px; text-align: center; }
         .messages-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #efeae2; }
@@ -61,8 +62,8 @@
 <body>
 
 <div class="nav-dots">
-    <div class="dot active" id="dot0"></div>
-    <div class="dot" id="dot1"></div>
+    <div class="dot active" id="dot0" onclick="navigateToPage(0)"></div>
+    <div class="dot" id="dot1" onclick="navigateToPage(1)"></div>
 </div>
 
 <div class="incoming-overlay" id="incoming-screen">
@@ -79,7 +80,7 @@
     <div class="screen">
         <div class="card" style="margin-top: 10px;">
             <h2>Voice Calling</h2>
-            <p class="subtitle">Swipe Left for Chat ➡️</p>
+            <p class="subtitle">Swipe Left or Click Dots for Chat ➡️</p>
             <div class="status" id="status">Connecting...</div>
             <div class="timer" id="timer">00:00</div>
             <div>Your Permanent Call ID:</div>
@@ -95,7 +96,7 @@
                 <input type="text" id="new-name" placeholder="Name" style="padding:8px; font-size:14px; text-align:left;">
                 <input type="tel" id="new-id" inputmode="numeric" pattern="[0-9]*" placeholder="6-Digit ID" style="padding:8px; font-size:14px;">
             </div>
-            <button class="btn call-btn" id="add-contact-btn" style="padding:8px; font-size:14px; margin:5px 0 0 0;">Add Contact</button>
+            <button class="btn call-btn" id="add-contact-btn" style="padding:8px; font-size:14px; margin:5px 0 0 0;">Add/Update Contact</button>
             
             <div class="contact-list" id="contact-list-container"></div>
         </div>
@@ -127,6 +128,7 @@
     let timerInterval, totalSeconds = 0;
     let currentScreenIndex = 0;
     let activeChatTargetId = null;
+    let heartbeatInterval = null; // Holds our loop identifier variable
 
     const viewport = document.getElementById('viewport');
     const statusDiv = document.getElementById('status'), myIdDiv = document.getElementById('my-id'), remoteIdInput = document.getElementById('remote-id'), callBtn = document.getElementById('call-btn'), hangBtn = document.getElementById('hang-btn'), remoteAudio = document.getElementById('remote-audio'), timerDiv = document.getElementById('timer');
@@ -136,7 +138,6 @@
 
     if ("Notification" in window) { Notification.requestPermission(); }
 
-    // Backup safety filter: immediately clears non-numbers if copy-pasted
     [remoteIdInput, idInput].forEach(element => {
         element.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
@@ -154,6 +155,7 @@
     
     let contacts = JSON.parse(localStorage.getItem('my_call_contacts')) || [];
     let chatHistories = JSON.parse(localStorage.getItem('my_chat_histories')) || {}; 
+    let badgeCounts = {}; 
 
     function loadIndividualChat(targetId, targetName) {
         activeChatTargetId = targetId;
@@ -164,6 +166,10 @@
         sendBtn.disabled = false;
         messageInput.placeholder = "Type a message...";
         
+        badgeCounts[targetId] = 0;
+        const badgeElement = document.getElementById(`badge-${targetId}`);
+        if(badgeElement) { badgeElement.style.display = 'none'; badgeElement.innerText = '0'; }
+
         messagesContainer.innerHTML = '';
         const history = chatHistories[targetId] || [];
         
@@ -189,14 +195,24 @@
         contacts.forEach(contact => {
             const item = document.createElement('div');
             item.classList.add('contact-item');
+            item.id = `contact-${contact.id}`;
+            
+            const currentBadgeVal = badgeCounts[contact.id] || 0;
+            const badgeStyle = currentBadgeVal > 0 ? 'display: inline-block;' : 'display: none;';
+
+            const history = chatHistories[contact.id] || [];
+            const lastMsgText = history.length > 0 ? history[history.length - 1].text : `ID: ${contact.id}`;
+
             item.innerHTML = `
-                <div class="contact-info"><span class="contact-name">${contact.name}</span><span class="contact-id">ID: ${contact.id}</span></div>
-                <span class="tap-action">💬 Chat</span>
+                <div class="contact-info">
+                    <span class="contact-name" id="name-display-${contact.id}">${contact.name}</span>
+                    <span class="contact-id" id="preview-${contact.id}">${lastMsgText}</span>
+                </div>
+                <span class="badge-pill" id="badge-${contact.id}" style="${badgeStyle}">${currentBadgeVal}</span>
             `;
             item.addEventListener('click', () => {
                 loadIndividualChat(contact.id, contact.name);
-                currentScreenIndex = 1;
-                updateViewportPosition();
+                navigateToPage(1); // Click directly triggers smooth sliding pagination
             });
             contactListContainer.appendChild(item);
         });
@@ -205,30 +221,44 @@
     addContactBtn.addEventListener('click', () => {
         const name = nameInput.value.trim(), id = idInput.value.trim();
         if(!name || id.length !== 6) return alert("Enter valid Name and 6-Digit Numeric ID!");
-        contacts.push({ name, id });
+        
+        let existingIndex = contacts.findIndex(c => c.id === id);
+        
+        if(existingIndex !== -1) {
+            contacts[existingIndex].name = name;
+        } else {
+            contacts.push({ name, id });
+        }
+        
         localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+        
+        if (activeChatTargetId === id) {
+            chatHeaderTitle.innerText = `Chat with ${name}`;
+        }
+        
         nameInput.value = ''; idInput.value = '';
         renderContacts();
     });
 
     renderContacts();
 
-    // --- SWIPE HANDLING ---
+    // Swipe Gesture Hooks
     let touchStartX = 0, touchEndX = 0;
     window.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
     window.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, {passive: true});
     function handleSwipeGesture() {
-        if (touchStartX - touchEndX > 60 && currentScreenIndex === 0) currentScreenIndex = 1;
-        else if (touchEndX - touchStartX > 60 && currentScreenIndex === 1) currentScreenIndex = 0;
-        updateViewportPosition();
+        if (touchStartX - touchEndX > 60 && currentScreenIndex === 0) navigateToPage(1);
+        else if (touchEndX - touchStartX > 60 && currentScreenIndex === 1) navigateToPage(0);
     }
-    function updateViewportPosition() {
+
+    // New: Dedicated function handles both PC clicks and swipes seamlessly
+    function navigateToPage(index) {
+        currentScreenIndex = index;
         viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
         document.getElementById('dot0').classList.toggle('active', currentScreenIndex === 0);
         document.getElementById('dot1').classList.toggle('active', currentScreenIndex === 1);
     }
 
-    // --- VOICE CALL HANDLING ---
     peer.on('call', (call) => {
         currentCall = call;
         callerIdDisplay.innerText = call.peer;
@@ -265,7 +295,6 @@
 
     hangBtn.addEventListener('click', () => { if (currentCall) currentCall.close(); endCallUi(); });
 
-    // --- TEXT MESSAGE SYSTEM ---
     peer.on('connection', (conn) => {
         dataConn = conn;
         setupDataListeners();
@@ -275,7 +304,7 @@
         const msgText = messageInput.value.trim();
         if (!activeChatTargetId || !msgText) return;
 
-        if (!dataConn || dataConn.peer !== activeChatTargetId) {
+        if (!dataConn || !dataConn.open || dataConn.peer !== activeChatTargetId) {
             dataConn = peer.connect(activeChatTargetId);
             dataConn.on('open', () => { sendMessagePayload(msgText); setupDataListeners(); });
         } else {
@@ -284,27 +313,70 @@
     });
 
     function sendMessagePayload(msg) {
-        dataConn.send(msg);
+        dataConn.send({ type: 'chat', text: msg }); // Structured payload wrapper
         saveMessageToHistory(activeChatTargetId, msg, 'sent');
         appendMessageUi(msg, 'sent');
+        
+        const preview = document.getElementById(`preview-${activeChatTargetId}`);
+        if(preview) preview.innerText = msg;
+
         messageInput.value = '';
     }
 
+    // New: Active Link Protection Loop (Heartbeat loop keeps connection open)
+    function startHeartbeatLoop() {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            if (dataConn && dataConn.open) {
+                dataConn.send({ type: 'heartbeat', text: 'ping' });
+            } else {
+                clearInterval(heartbeatInterval);
+            }
+        }, 15000); // Sends a microscopic ping string packet every 15 seconds
+    }
+
     function setupDataListeners() {
-        dataConn.on('data', (data) => {
+        startHeartbeatLoop(); // Start loop whenever connection is active
+
+        dataConn.on('data', (payload) => {
+            // Drop execution early if it's just a background system heartbeat
+            if (payload && payload.type === 'heartbeat') return;
+
+            // Extract string text cleanly from wrapper payload object
+            const data = (payload && payload.text) ? payload.text : payload;
             const senderId = dataConn.peer;
-            const matchingContact = contacts.find(c => c.id === senderId);
-            const senderName = matchingContact ? matchingContact.name : `User ${senderId}`;
+            let matchingContact = contacts.find(c => c.id === senderId);
+            
+            if (!matchingContact) {
+                matchingContact = { name: `Unknown (${senderId})`, id: senderId };
+                contacts.push(matchingContact);
+                localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+                renderContacts();
+            }
 
             saveMessageToHistory(senderId, data, 'received');
 
-            if (activeChatTargetId === senderId) {
+            if (activeChatTargetId === senderId && currentScreenIndex === 1) {
                 appendMessageUi(data, 'received');
+            } else {
+                badgeCounts[senderId] = (badgeCounts[senderId] || 0) + 1;
+                const badgeElement = document.getElementById(`badge-${senderId}`);
+                if(badgeElement) {
+                    badgeElement.innerText = badgeCounts[senderId];
+                    badgeElement.style.display = 'inline-block';
+                }
             }
 
+            const previewElement = document.getElementById(`preview-${senderId}`);
+            if(previewElement) previewElement.innerText = data;
+
             if (Notification.permission === "granted" && document.hidden) {
-                new Notification(`Message from ${senderName}`, { body: data });
+                new Notification(`Message from ${matchingContact.name}`, { body: data });
             }
+        });
+
+        dataConn.on('close', () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
         });
     }
 
