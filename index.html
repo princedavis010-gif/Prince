@@ -54,7 +54,7 @@
         .chat-header { background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .messages-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #efeae2; }
         
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 10px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 10px; font-size: 15px; line-height: 1.4; word-wrap: break-word; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .msg.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
         .msg.received { background: white; align-self: flex-start; border-top-left-radius: 0; }
         
@@ -76,6 +76,8 @@
         .modal-btn:hover { background: #f0f0f0; }
         .modal-btn.danger { color: #ea0038; border-color: #fcd7d9; background: #fff5f5; }
         .modal-btn.danger:hover { background: #ffebeb; }
+
+        .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 400; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         
         @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -88,6 +90,8 @@
     <div class="dot" id="dot1" onclick="navigateToPage(1)"></div>
 </div>
 
+<div class="toast-notification" id="path-toast">Path copied! Paste in your File Manager.</div>
+
 <div class="modal-overlay" id="options-modal">
     <div class="modal-card">
         <h4 id="modal-title">Contact Options</h4>
@@ -96,6 +100,22 @@
         <button class="modal-btn danger" id="opt-delete">🗑️ Delete Contact</button>
         <button class="modal-btn" style="justify-content: center; background:#eee; margin-top:10px;" onclick="closeOptionsModal()">Cancel</button>
         <input type="file" id="pfp-file-input" accept="image/*" style="display:none;">
+    </div>
+</div>
+
+<div class="modal-overlay" id="attachment-modal">
+    <div class="modal-card">
+        <h4 style="margin-bottom:8px;">File Attachments</h4>
+        <p style="font-size:12px; color:#666; margin-bottom:12px;">Select an asset module to transmit down the P2P connection stream.</p>
+        
+        <button class="modal-btn" onclick="openNativeFilePicker('documents')">📄 Documents</button>
+        <button class="modal-btn" onclick="openNativePhotoPicker()">📷 Images (Gallery Grid)</button>
+        <button class="modal-btn" onclick="openNativeFilePicker('all')">💾 Internal Storage Root</button>
+        
+        <button class="modal-btn" style="justify-content: center; background:#eee; margin-top:10px;" onclick="closeAttachmentModal()">Cancel</button>
+        
+        <input type="file" id="document-picker" style="display:none;">
+        <input type="file" id="native-photo-picker" accept="image/*" multiple style="display:none;">
     </div>
 </div>
 
@@ -173,30 +193,72 @@
     const messageInput = document.getElementById('chat-message'), sendBtn = document.getElementById('send-btn'), messagesContainer = document.getElementById('messages-container'), chatHeaderTitle = document.getElementById('chat-header-title'), chatHeaderPfp = document.getElementById('chat-header-pfp');
     const nameInput = document.getElementById('new-name'), idInput = document.getElementById('new-id'), addContactBtn = document.getElementById('add-contact-btn'), contactListContainer = document.getElementById('contact-list-container');
     const optionsModal = document.getElementById('options-modal'), modalTitle = document.getElementById('modal-title'), pfpFileInput = document.getElementById('pfp-file-input');
+    const attachmentModal = document.getElementById('attachment-modal'), documentPicker = document.getElementById('document-picker'), nativePhotoPicker = document.getElementById('native-photo-picker'), pathToast = document.getElementById('path-toast');
 
     const defaultPfpSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23aaa'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
     const highQualityAudioConstraints = {
-        audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            channelCount: 2,               
-            sampleRate: 48000,             
-            sampleSize: 16
-        }
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 2, sampleRate: 48000, sampleSize: 16 }
     };
+
+    function openAttachmentModal() { attachmentModal.style.display = 'flex'; }
+    function closeAttachmentModal() { attachmentModal.style.display = 'none'; }
+
+    function openNativePhotoPicker() {
+        closeAttachmentModal();
+        nativePhotoPicker.click();
+    }
+
+    // Fixed picker attributes to align cleanly across formats
+    function openNativeFilePicker(type) {
+        closeAttachmentModal();
+        if (type === 'documents') {
+            documentPicker.accept = ".pdf,.doc,.docx,.txt,.apk";
+        } else {
+            documentPicker.removeAttribute('accept');
+        }
+        documentPicker.click();
+    }
+
+    function processBinaryFileTransmission(file) {
+        const outputLabel = `📎 [File]: ${file.name}`;
+        saveMessageToHistory(activeChatTargetId, outputLabel, 'sent');
+        appendMessageUi(outputLabel, 'sent');
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            if (dataConn && dataConn.open && dataConn.peer === activeChatTargetId) {
+                dataConn.send({
+                    type: 'file-transfer',
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileData: event.target.result
+                });
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    nativePhotoPicker.addEventListener('change', function() {
+        if(this.files.length === 0) return;
+        Array.from(this.files).forEach(file => processBinaryFileTransmission(file));
+        this.value = '';
+    });
+
+    documentPicker.addEventListener('change', function() {
+        if(this.files.length === 0) return;
+        Array.from(this.files).forEach(file => processBinaryFileTransmission(file));
+        this.value = '';
+    });
 
     async function forceNativeMicrophonePrompt() {
         try {
             statusDiv.innerText = "Requesting mic hardware access...";
             localStream = await navigator.mediaDevices.getUserMedia(highQualityAudioConstraints);
-            console.log("Native system mic handler successfully authorized.");
             return true;
         } catch (err) {
-            console.error("Critical hardware access failure:", err);
             statusDiv.innerText = "Error: Allow microphone permission in phone settings.";
-            alert("Microphone blocked. If you aren't seeing a pop-up, please go to your phone's Android Settings -> Apps -> Your App -> Permissions, and manually toggle Microphone 'ON'.");
+            alert("Microphone blocked. Manually toggle Microphone 'ON' in settings.");
             return false;
         }
     }
@@ -206,24 +268,14 @@
             let initialCheck = await navigator.mediaDevices.getUserMedia({ audio: true });
             initialCheck.getTracks().forEach(track => track.stop());
         } catch (e) {}
-
-        if ('Notification' in window) {
-            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                await Notification.requestPermission();
-            }
+        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            await Notification.requestPermission();
         }
     });
 
     function triggerSystemNotification(title, messageBody) {
         if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-                new Notification(title, {
-                    body: messageBody,
-                    icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23075e54"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>'
-                });
-            } catch (e) {
-                console.error("System notification runtime error:", e);
-            }
+            try { new Notification(title, { body: messageBody, icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23075e54"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>' }); } catch (e) {}
         }
     }
 
@@ -231,20 +283,15 @@
         const workerBlob = new Blob([`
             let keepAliveTimer = null;
             self.onmessage = function(e) {
-                if(e.data === 'start') {
-                    if(!keepAliveTimer) { keepAliveTimer = setInterval(() => { self.postMessage('ping'); }, 12000); }
-                } else if(e.data === 'stop') { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+                if(e.data === 'start') { if(!keepAliveTimer) { keepAliveTimer = setInterval(() => { self.postMessage('ping'); }, 12000); } }
+                else if(e.data === 'stop') { clearInterval(keepAliveTimer); keepAliveTimer = null; }
             };
         `], { type: 'application/javascript' });
         bgWorker = new Worker(URL.createObjectURL(workerBlob));
-        bgWorker.onmessage = function() {
-            if(dataConn && dataConn.open) { dataConn.send({ type: 'heartbeat', text: 'bg-tick' }); }
-        };
+        bgWorker.onmessage = function() { if(dataConn && dataConn.open) { dataConn.send({ type: 'heartbeat', text: 'bg-tick' }); } };
     } catch(e) {}
 
-    function maximizeAudioBitrateSDP(sdp) {
-        return sdp.replace(/a=fmtp:111([^\\r\\n]*)/g, "a=fmtp:111$1;maxaveragebitrate=510000;stereo=1;useinbandfec=1;maxplaybackrate=48000");
-    }
+    function maximizeAudioBitrateSDP(sdp) { return sdp.replace(/a=fmtp:111([^\\r\\n]*)/g, "a=fmtp:111$1;maxaveragebitrate=510000;stereo=1;useinbandfec=1;maxplaybackrate=48000"); }
 
     function optimizeCallHandshake(call) {
         if (!call || !call.peerConnection) return;
@@ -257,15 +304,14 @@
         });
     }
 
-    [remoteIdInput, idInput].forEach(element => {
-        element.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); });
-    });
+    [remoteIdInput, idInput].forEach(element => { element.addEventListener('input', function() { this.value = this.value.replace(/[^0-9]/g, ''); }); });
 
     let memorableId = localStorage.getItem('my_web_call_id');
     if (!memorableId) {
         memorableId = Math.floor(100000 + Math.random() * 900000).toString();
         localStorage.setItem('my_web_call_id', memorableId);
     }
+    myIdDiv.innerText = memorableId;
 
     peer = new Peer(memorableId);
     peer.on('open', (id) => { myIdDiv.innerText = id; statusDiv.innerText = "Ready to connect."; });
@@ -280,17 +326,9 @@
         chatHeaderTitle.innerText = `Chat with ${targetName}`;
         
         const matchedContact = contacts.find(c => c.id === targetId);
-        if (matchedContact && matchedContact.pfp) {
-            chatHeaderPfp.src = matchedContact.pfp;
-            chatHeaderPfp.style.display = 'block';
-        } else {
-            chatHeaderPfp.style.display = 'none';
-        }
+        if (matchedContact && matchedContact.pfp) { chatHeaderPfp.src = matchedContact.pfp; chatHeaderPfp.style.display = 'block'; } else { chatHeaderPfp.style.display = 'none'; }
 
-        messageInput.disabled = false;
-        sendBtn.disabled = false;
-        messageInput.placeholder = "Type a message...";
-        
+        messageInput.disabled = false; sendBtn.disabled = false; messageInput.placeholder = "Type a message...";
         badgeCounts[targetId] = 0;
         const badgeElement = document.getElementById(`badge-${targetId}`);
         if(badgeElement) { badgeElement.style.display = 'none'; }
@@ -298,15 +336,21 @@
         messagesContainer.innerHTML = '';
         const history = chatHistories[targetId] || [];
         if(history.length === 0) {
-            messagesContainer.innerHTML = `<div style="text-align:center; color:#999; font-size:13px; margin-top:10px; font-style:italic;">Beginning of history with ${targetName}.</div>`;
+            messagesContainer.innerHTML = `<div style="text-align:center; color:#999; font-size:13px; margin-top:10px; font-style:italic;" id="chat-placeholder">Beginning of history with ${targetName}.</div>`;
         } else {
-            history.forEach(msg => appendMessageUi(msg.text, msg.type));
+            history.forEach(msg => {
+                if (msg.text.startsWith('📥 [Download File]')) {
+                    appendDownloadButtonUi(msg.rawName || "File Asset", "#", msg.type);
+                } else {
+                    appendMessageUi(msg.text, msg.type);
+                }
+            });
         }
     }
 
-    function saveMessageToHistory(targetId, text, type) {
+    function saveMessageToHistory(targetId, text, type, rawName = null) {
         if (!chatHistories[targetId]) chatHistories[targetId] = [];
-        chatHistories[targetId].push({ text, type });
+        chatHistories[targetId].push({ text, type, rawName });
         localStorage.setItem('my_chat_histories', JSON.stringify(chatHistories));
     }
 
@@ -320,25 +364,15 @@
     function flushPendingMessagesForPeer(targetId) {
         let pendingQueue = JSON.parse(localStorage.getItem('pending_messages_queue')) || [];
         if (pendingQueue.length === 0) return;
-
         const messagesToSend = pendingQueue.filter(item => item.targetId === targetId);
         const remainingQueue = pendingQueue.filter(item => item.targetId !== targetId);
-
-        messagesToSend.forEach(msg => {
-            if (dataConn && dataConn.open) {
-                dataConn.send({ type: 'chat', text: msg.text });
-            }
-        });
-
+        messagesToSend.forEach(msg => { if (dataConn && dataConn.open) { dataConn.send({ type: 'chat', text: msg.text }); } });
         localStorage.setItem('pending_messages_queue', JSON.stringify(remainingQueue));
     }
 
     function renderContacts() {
         contactListContainer.innerHTML = '';
-        if(contacts.length === 0) {
-            contactListContainer.innerHTML = '<div style="text-align:center; color:#999; font-size:14px; padding:10px;">No contacts saved yet.</div>';
-            return;
-        }
+        if(contacts.length === 0) { contactListContainer.innerHTML = '<div style="text-align:center; color:#999; font-size:14px; padding:10px;">No contacts saved yet.</div>'; return; }
         contacts.forEach(contact => {
             const item = document.createElement('div');
             item.classList.add('contact-item');
@@ -367,16 +401,10 @@
 
             item.addEventListener('touchstart', startPress, {passive: true});
             item.addEventListener('touchend', endPress, {passive: true});
-            item.addEventListener('mousedown', startPress);
-            item.addEventListener('mouseup', endPress);
-            item.addEventListener('mouseleave', endPress);
+            item.addEventListener('mousedown', startPress); item.addEventListener('mouseup', endPress); item.addEventListener('mouseleave', endPress);
             item.addEventListener('contextmenu', (e) => { e.preventDefault(); openOptionsModal(contact.id, contact.name); });
 
-            item.addEventListener('click', () => {
-                if(optionsModal.style.display === 'flex') return;
-                loadIndividualChat(contact.id, contact.name);
-                navigateToPage(1);
-            });
+            item.addEventListener('click', () => { if(optionsModal.style.display === 'flex') return; loadIndividualChat(contact.id, contact.name); navigateToPage(1); });
             contactListContainer.appendChild(item);
         });
     }
@@ -385,12 +413,10 @@
     function closeOptionsModal() { optionsModal.style.display = 'none'; selectedContactModalId = null; }
 
     document.getElementById('opt-rename').addEventListener('click', () => {
-        const found = contacts.find(c => c.id === selectedContactModalId);
-        if(!found) return closeOptionsModal();
+        const found = contacts.find(c => c.id === selectedContactModalId); if(!found) return closeOptionsModal();
         const updatedName = prompt("Enter new name:", found.name);
         if(updatedName && updatedName.trim() !== '') {
-            found.name = updatedName.trim();
-            localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+            found.name = updatedName.trim(); localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
             if(activeChatTargetId === selectedContactModalId) { chatHeaderTitle.innerText = `Chat with ${found.name}`; }
             renderContacts();
         }
@@ -400,18 +426,13 @@
     document.getElementById('opt-pfp').addEventListener('click', () => { pfpFileInput.click(); });
 
     pfpFileInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if(!file) return;
+        const file = this.files[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             const found = contacts.find(c => c.id === selectedContactModalId);
             if(found) {
-                found.pfp = e.target.result;
-                localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
-                if(activeChatTargetId === selectedContactModalId) {
-                    chatHeaderPfp.src = e.target.result;
-                    chatHeaderPfp.style.display = 'block';
-                }
+                found.pfp = e.target.result; localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+                if(activeChatTargetId === selectedContactModalId) { chatHeaderPfp.src = e.target.result; chatHeaderPfp.style.display = 'block'; }
                 renderContacts();
             }
             closeOptionsModal();
@@ -421,33 +442,19 @@
 
     document.getElementById('opt-delete').addEventListener('click', () => {
         if(confirm("Delete contact?")) {
-            contacts = contacts.filter(c => c.id !== selectedContactModalId);
-            localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
-            if(activeChatTargetId === selectedContactModalId) {
-                activeChatTargetId = null;
-                chatHeaderCircleStyle(false);
-                messageInput.disabled = true; sendBtn.disabled = true;
-            }
+            contacts = contacts.filter(c => c.id !== selectedContactModalId); localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
+            if(activeChatTargetId === selectedContactModalId) { activeChatTargetId = null; chatHeaderCircleStyle(false); messageInput.disabled = true; sendBtn.disabled = true; }
             renderContacts();
         }
         closeOptionsModal();
     });
 
-    function chatHeaderCircleStyle(isActive) {
-        if(!isActive) {
-            chatHeaderTitle.innerText = "No Active Chat";
-            chatHeaderPfp.style.display = 'none';
-        }
-    }
+    function chatHeaderCircleStyle(isActive) { if(!isActive) { chatHeaderTitle.innerText = "No Active Chat"; chatHeaderPfp.style.display = 'none'; } }
 
     addContactBtn.addEventListener('click', () => {
-        const name = nameInput.value.trim(), id = idInput.value.trim();
-        if(!name || id.length !== 6) return alert("Enter valid credentials!");
-        let existingIndex = contacts.findIndex(c => c.id === id);
-        if(existingIndex !== -1) { contacts[existingIndex].name = name; } else { contacts.push({ name, id }); }
-        localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
-        nameInput.value = ''; idInput.value = '';
-        renderContacts();
+        const name = nameInput.value.trim(), id = idInput.value.trim(); if(!name || id.length !== 6) return alert("Enter valid credentials!");
+        let existingIndex = contacts.findIndex(c => c.id === id); if(existingIndex !== -1) { contacts[existingIndex].name = name; } else { contacts.push({ name, id }); }
+        localStorage.setItem('my_call_contacts', JSON.stringify(contacts)); nameInput.value = ''; idInput.value = ''; renderContacts();
     });
 
     renderContacts();
@@ -461,44 +468,24 @@
     }
 
     function navigateToPage(index) {
-        currentScreenIndex = index;
-        viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
+        currentScreenIndex = index; viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
         document.getElementById('dot0').classList.toggle('active', currentScreenIndex === 0);
         document.getElementById('dot1').classList.toggle('active', currentScreenIndex === 1);
     }
 
-    function configureAudioSessionBackground() {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({ title: 'Voice Connection', artist: 'P2P', album: 'Active' });
-            navigator.mediaSession.setActionHandler('play', () => {});
-            navigator.mediaSession.setActionHandler('pause', () => {});
-        }
-    }
+    function configureAudioSessionBackground() { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Voice Connection', artist: 'P2P', album: 'Active' }); } }
 
     peer.on('call', async (call) => {
-        currentCall = call;
-        callerIdDisplay.innerText = call.peer;
-        incomingScreen.style.display = 'flex';
-
-        let callerName = call.peer;
-        let matched = contacts.find(c => c.id === call.peer);
-        if(matched) callerName = matched.name;
+        currentCall = call; callerIdDisplay.innerText = call.peer; incomingScreen.style.display = 'flex';
+        let callerName = call.peer; let matched = contacts.find(c => c.id === call.peer); if(matched) callerName = matched.name;
         triggerSystemNotification("☎️ Incoming P2P Call", `${callerName} is calling you right now!`);
 
         acceptBtn.onclick = async () => {
-            incomingScreen.style.display = 'none';
-            const derivedPermissionResult = await forceNativeMicrophonePrompt();
-            if(!derivedPermissionResult) return;
-
+            incomingScreen.style.display = 'none'; const derivedPermissionResult = await forceNativeMicrophonePrompt(); if(!derivedPermissionResult) return;
             try {
-                call.answer(localStream);
-                statusDiv.innerText = "Connected.";
-                toggleButtons(true); startTimer();
-                configureAudioSessionBackground();
+                call.answer(localStream); statusDiv.innerText = "Connected."; toggleButtons(true); startTimer(); configureAudioSessionBackground();
                 if(bgWorker) bgWorker.postMessage('start');
-                
                 optimizeCallHandshake(call);
-                
                 call.on('stream', (remoteStream) => { remoteAudio.srcObject = remoteStream; });
                 call.on('close', () => endCallUi());
             } catch (err) { statusDiv.innerText = "Call failed."; call.close(); }
@@ -507,94 +494,81 @@
     });
 
     callBtn.addEventListener('click', async () => {
-        const friendId = remoteIdInput.value.trim();
-        if (!friendId || friendId.length !== 6) return alert("Enter 6-digit ID!");
-        
-        const hasAccess = await forceNativeMicrophonePrompt();
-        if(!hasAccess) return;
-
+        const friendId = remoteIdInput.value.trim(); if (!friendId || friendId.length !== 6) return alert("Enter 6-digit ID!");
+        const hasAccess = await forceNativeMicrophonePrompt(); if(!hasAccess) return;
         statusDiv.innerText = "Calling...";
         try {
-            currentCall = peer.call(friendId, localStream);
-            toggleButtons(true);
-            configureAudioSessionBackground();
+            currentCall = peer.call(friendId, localStream); toggleButtons(true); configureAudioSessionBackground();
             if(bgWorker) bgWorker.postMessage('start');
-            
             optimizeCallHandshake(currentCall);
-            
-            currentCall.on('stream', (remoteStream) => {
-                remoteAudio.srcObject = remoteStream;
-                if (totalSeconds === 0) { statusDiv.innerText = "Connected."; startTimer(); }
-            });
+            currentCall.on('stream', (remoteStream) => { remoteAudio.srcObject = remoteStream; if (totalSeconds === 0) { statusDiv.innerText = "Connected."; startTimer(); } });
             currentCall.on('close', () => endCallUi());
         } catch (err) { statusDiv.innerText = "Mic error."; }
     });
 
     hangBtn.addEventListener('click', () => { if (currentCall) currentCall.close(); endCallUi(); });
 
-    peer.on('connection', (conn) => { 
-        dataConn = conn; 
-        setupDataListeners(); 
-        dataConn.on('open', () => {
-            flushPendingMessagesForPeer(dataConn.peer);
-        });
-    });
+    peer.on('connection', (conn) => { dataConn = conn; setupDataListeners(); dataConn.on('open', () => { flushPendingMessagesForPeer(dataConn.peer); }); });
 
     sendBtn.addEventListener('click', () => {
-        const msgText = messageInput.value.trim();
-        if (!activeChatTargetId || !msgText) return;
-        
-        if (dataConn && dataConn.open && dataConn.peer === activeChatTargetId) {
-            sendMessagePayload(msgText);
-        } else {
-            saveMessageToHistory(activeChatTargetId, msgText, 'sent');
-            queueOfflineMessage(activeChatTargetId, msgText);
-            messageInput.value = '';
-            
+        const msgText = messageInput.value.trim(); if (!activeChatTargetId || !msgText) return;
+        if (dataConn && dataConn.open && dataConn.peer === activeChatTargetId) { sendMessagePayload(msgText); } else {
+            saveMessageToHistory(activeChatTargetId, msgText, 'sent'); queueOfflineMessage(activeChatTargetId, msgText); messageInput.value = '';
             dataConn = peer.connect(activeChatTargetId);
-            dataConn.on('open', () => {
-                setupDataListeners();
-                flushPendingMessagesForPeer(activeChatTargetId);
-            });
+            dataConn.on('open', () => { setupDataListeners(); flushPendingMessagesForPeer(activeChatTargetId); });
         }
     });
 
-    function sendMessagePayload(msg) {
-        dataConn.send({ type: 'chat', text: msg });
-        saveMessageToHistory(activeChatTargetId, msg, 'sent');
-        appendMessageUi(msg, 'sent');
-        messageInput.value = '';
-    }
+    function sendMessagePayload(msg) { dataConn.send({ type: 'chat', text: msg }); saveMessageToHistory(activeChatTargetId, msg, 'sent'); appendMessageUi(msg, 'sent'); messageInput.value = ''; }
 
     function startHeartbeatLoop() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
-        heartbeatInterval = setInterval(() => {
-            if (dataConn && dataConn.open) { dataConn.send({ type: 'heartbeat', text: 'ping' }); } else { clearInterval(heartbeatInterval); }
-        }, 15000); 
+        heartbeatInterval = setInterval(() => { if (dataConn && dataConn.open) { dataConn.send({ type: 'heartbeat', text: 'ping' }); } else { clearInterval(heartbeatInterval); } }, 15000); 
     }
 
+    // FIXED: Correct parsing of mixed text objects and structural binary data types
     function setupDataListeners() {
         startHeartbeatLoop();
         dataConn.on('data', (payload) => {
             if (payload && (payload.type === 'heartbeat' || payload.text === 'bg-tick')) return;
-            const data = (payload && payload.text) ? payload.text : payload;
+            
             const senderId = dataConn.peer;
             let matchingContact = contacts.find(c => c.id === senderId);
-            
-            if (!matchingContact) {
-                matchingContact = { name: `Unknown (${senderId})`, id: senderId };
-                contacts.push(matchingContact);
-                localStorage.setItem('my_call_contacts', JSON.stringify(contacts));
-                renderContacts();
+            if (!matchingContact) { 
+                matchingContact = { name: `Unknown (${senderId})`, id: senderId }; 
+                contacts.push(matchingContact); 
+                localStorage.setItem('my_call_contacts', JSON.stringify(contacts)); 
+                renderContacts(); 
             }
 
-            saveMessageToHistory(senderId, data, 'received');
-            triggerSystemNotification(`📩 Message from ${matchingContact.name}`, data);
+            // Binary parsing check
+            if (payload && payload.type === 'file-transfer') {
+                const fileBlob = new Blob([payload.fileData], { type: payload.fileType });
+                const downloadUrl = URL.createObjectURL(fileBlob);
 
-            if (activeChatTargetId === senderId && currentScreenIndex === 1) {
-                appendMessageUi(data, 'received');
+                saveMessageToHistory(senderId, `📥 [Download File]: ${payload.fileName}`, 'received', payload.fileName);
+                triggerSystemNotification(`📁 Received file from ${matchingContact.name}`, payload.fileName);
+
+                if (activeChatTargetId === senderId && currentScreenIndex === 1) {
+                    appendDownloadButtonUi(payload.fileName, downloadUrl, 'received');
+                } else {
+                    badgeCounts[senderId] = (badgeCounts[senderId] || 0) + 1;
+                    const badgeElement = document.getElementById(`badge-${senderId}`);
+                    if(badgeElement) { badgeElement.innerText = badgeCounts[senderId]; badgeElement.style.display = 'inline-block'; }
+                }
+                renderContacts();
+                return;
+            }
+
+            // Standard string message parsing
+            const data = (payload && payload.text) ? payload.text : payload;
+            saveMessageToHistory(senderId, data, 'received'); 
+            triggerSystemNotification(`📩 Message from ${matchingContact.name}`, data);
+            
+            if (activeChatTargetId === senderId && currentScreenIndex === 1) { 
+                appendMessageUi(data, 'received'); 
             } else {
-                badgeCounts[senderId] = (badgeCounts[senderId] || 0) + 1;
+                badgeCounts[senderId] = (badgeCounts[senderId] || 0) + 1; 
                 const badgeElement = document.getElementById(`badge-${senderId}`);
                 if(badgeElement) { badgeElement.innerText = badgeCounts[senderId]; badgeElement.style.display = 'inline-block'; }
             }
@@ -604,36 +578,51 @@
 
     function appendMessageUi(text, type) {
         if (document.getElementById('chat-placeholder')) { document.getElementById('chat-placeholder').remove(); }
+        const msgElement = document.createElement('div'); msgElement.classList.add('msg', type); msgElement.innerText = text;
+        
+        let msgPressTimer = null;
+        msgElement.addEventListener('touchstart', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); }, {passive: true});
+        msgElement.addEventListener('touchend', () => { if(msgPressTimer) clearTimeout(msgPressTimer); }, {passive: true});
+        msgElement.addEventListener('mousedown', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); });
+        msgElement.addEventListener('mouseup', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
+        msgElement.addEventListener('mouseleave', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
+
+        messagesContainer.appendChild(msgElement); messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function appendDownloadButtonUi(fileName, downloadUrl, type) {
+        if (document.getElementById('chat-placeholder')) { document.getElementById('chat-placeholder').remove(); }
         const msgElement = document.createElement('div');
         msgElement.classList.add('msg', type);
-        msgElement.innerText = text;
+        
+        msgElement.style.padding = "10px";
+        msgElement.innerHTML = `
+            <div style="text-align: center;">
+                <p style="font-size:13px; font-weight:600; color:#333; margin-bottom:6px; word-break:break-all;">📁 ${fileName}</p>
+                <a href="${downloadUrl}" download="${fileName}" style="display: inline-block; background: #25D366; color: white; padding: 6px 14px; border-radius: 15px; text-decoration: none; font-size: 13px; font-weight: bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                    📥 Download File
+                </a>
+            </div>
+        `;
+
+        let msgPressTimer = null;
+        msgElement.addEventListener('touchstart', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); }, {passive: true});
+        msgElement.addEventListener('touchend', () => { if(msgPressTimer) clearTimeout(msgPressTimer); }, {passive: true});
+        msgElement.addEventListener('mousedown', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); });
+        msgElement.addEventListener('mouseup', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
+        msgElement.addEventListener('mouseleave', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
+
         messagesContainer.appendChild(msgElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
     function startTimer() {
         stopTimer(); totalSeconds = 0; timerDiv.innerText = "00:00"; timerDiv.style.display = "block";
-        timerInterval = setInterval(() => {
-            totalSeconds++;
-            let minutes = Math.floor(totalSeconds / 60), seconds = totalSeconds % 60;
-            timerDiv.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
-        }, 1000);
+        timerInterval = setInterval(() => { totalSeconds++; let minutes = Math.floor(totalSeconds / 60), seconds = totalSeconds % 60; timerDiv.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds); }, 1000);
     }
     function stopTimer() { clearInterval(timerInterval); timerDiv.style.display = "none"; }
-    function toggleButtons(isCalling) {
-        callBtn.style.display = isCalling ? 'none' : 'block';
-        remoteIdInput.style.display = isCalling ? 'none' : 'block';
-        hangBtn.style.display = isCalling ? 'block' : 'none';
-    }
-    function endCallUi() { 
-        stopTimer(); 
-        incomingScreen.style.display = 'none'; 
-        if (localStream) localStream.getTracks().forEach(track => track.stop()); 
-        statusDiv.innerText = "Call ended."; 
-        toggleButtons(false); 
-        if(bgWorker) bgWorker.postMessage('stop');
-    }
+    function toggleButtons(isCalling) { callBtn.style.display = isCalling ? 'none' : 'block'; remoteIdInput.style.display = isCalling ? 'none' : 'block'; hangBtn.style.display = isCalling ? 'block' : 'none'; }
+    function endCallUi() { stopTimer(); incomingScreen.style.display = 'none'; if (localStream) localStream.getTracks().forEach(track => track.stop()); statusDiv.innerText = "Call ended."; toggleButtons(false); if(bgWorker) bgWorker.postMessage('stop'); }
 </script>
 </body>
 </html>
-
