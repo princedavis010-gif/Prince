@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DavisWebCallnChat</title>
+    
+    <title>DavisWebCall'nChat</title>
+
+    <meta property="og:title" content="DavisWebCall'nChat">
+    <meta property="og:description" content="Connect instantly with your friends using secure P2P voice calls and real-time chat.">
+    <meta property="og:image" content="image.jpg">
+    <meta property="og:type" content="website">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { width: 100%; height: 100%; overflow: hidden; background: #e5ddd5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; position: fixed; }
@@ -177,24 +186,26 @@
         }
     };
 
-    // Persistent verification layer to ensure microphone streams initialize on instant load
-    async function requestMicrophoneAccess() {
+    async function forceNativeMicrophonePrompt() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia(highQualityAudioConstraints);
-            // Instantly stop the preview stream so system audio handlers release the hardware cleanly
-            stream.getTracks().forEach(track => track.stop());
-            console.log("System micro-capture successfully initialized.");
+            statusDiv.innerText = "Requesting mic hardware access...";
+            localStream = await navigator.mediaDevices.getUserMedia(highQualityAudioConstraints);
+            console.log("Native system mic handler successfully authorized.");
+            return true;
         } catch (err) {
-            console.error("Microphone hardware block initialization error:", err);
-            statusDiv.innerText = "Please enable microphone permission.";
+            console.error("Critical hardware access failure:", err);
+            statusDiv.innerText = "Error: Allow microphone permission in phone settings.";
+            alert("Microphone blocked. If you aren't seeing a pop-up, please go to your phone's Android Settings -> Apps -> Your App -> Permissions, and manually toggle Microphone 'ON'.");
+            return false;
         }
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
-        // Trigger microphone session permission capture loop on first payload run
-        await requestMicrophoneAccess();
+        try {
+            let initialCheck = await navigator.mediaDevices.getUserMedia({ audio: true });
+            initialCheck.getTracks().forEach(track => track.stop());
+        } catch (e) {}
 
-        // Prompt system notifications authorization layer
         if ('Notification' in window) {
             if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
                 await Notification.requestPermission();
@@ -210,7 +221,7 @@
                     icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23075e54"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>'
                 });
             } catch (e) {
-                console.error("Notification initialization runtime failure:", e);
+                console.error("System notification runtime error:", e);
             }
         }
     }
@@ -440,7 +451,7 @@
         }
     }
 
-    peer.on('call', (call) => {
+    peer.on('call', async (call) => {
         currentCall = call;
         callerIdDisplay.innerText = call.peer;
         incomingScreen.style.display = 'flex';
@@ -452,8 +463,10 @@
 
         acceptBtn.onclick = async () => {
             incomingScreen.style.display = 'none';
+            const derivedPermissionResult = await forceNativeMicrophonePrompt();
+            if(!derivedPermissionResult) return;
+
             try {
-                localStream = await navigator.mediaDevices.getUserMedia(highQualityAudioConstraints);
                 call.answer(localStream);
                 statusDiv.innerText = "Connected.";
                 toggleButtons(true); startTimer();
@@ -472,9 +485,12 @@
     callBtn.addEventListener('click', async () => {
         const friendId = remoteIdInput.value.trim();
         if (!friendId || friendId.length !== 6) return alert("Enter 6-digit ID!");
+        
+        const hasAccess = await forceNativeMicrophonePrompt();
+        if(!hasAccess) return;
+
         statusDiv.innerText = "Calling...";
         try {
-            localStream = await navigator.mediaDevices.getUserMedia(highQualityAudioConstraints);
             currentCall = peer.call(friendId, localStream);
             toggleButtons(true);
             configureAudioSessionBackground();
@@ -579,7 +595,3 @@
         statusDiv.innerText = "Call ended."; 
         toggleButtons(false); 
         if(bgWorker) bgWorker.postMessage('stop');
-    }
-</script>
-</body>
-</html>
