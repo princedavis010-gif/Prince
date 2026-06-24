@@ -18,7 +18,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { width: 100%; height: 100%; overflow: hidden; background: #e5ddd5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; position: fixed; }
         
-        .viewport { display: flex; width: 200vw; height: 100%; transition: transform 0.3s ease-out; touch-action: pan-y; }
+        .viewport { display: flex; width: 200vw; height: 100%; transition: transform 0.3s ease-out; touch-action: pan-y; will-change: transform; }
         .screen { width: 100vw; height: 100%; display: flex; flex-direction: column; padding: 20px; position: relative; justify-content: flex-start; align-items: center; overflow-y: auto; }
         
         .card { width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
@@ -209,7 +209,6 @@
         nativePhotoPicker.click();
     }
 
-    // Fixed picker attributes to align cleanly across formats
     function openNativeFilePicker(type) {
         closeAttachmentModal();
         if (type === 'documents') {
@@ -313,12 +312,36 @@
     }
     myIdDiv.innerText = memorableId;
 
-    peer = new Peer(memorableId);
-    peer.on('open', (id) => { myIdDiv.innerText = id; statusDiv.innerText = "Ready to connect."; });
+    const peerConfig = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    };
+
+    peer = new Peer(memorableId, { config: peerConfig });
+    peer.on('open', (id) => { 
+        myIdDiv.innerText = id; 
+        statusDiv.innerText = "Ready to connect."; 
+        establishProactiveHandshake();
+    });
+
+    peer.on('disconnected', () => { statusDiv.innerText = "Reconnecting..."; peer.reconnect(); });
     
     let contacts = JSON.parse(localStorage.getItem('my_call_contacts')) || [];
     let chatHistories = JSON.parse(localStorage.getItem('my_chat_histories')) || {}; 
     let badgeCounts = {}; 
+
+    function establishProactiveHandshake() {
+        contacts.forEach(contact => {
+            if (!dataConn || dataConn.peer !== contact.id || !dataConn.open) {
+                dataConn = peer.connect(contact.id);
+                setupDataListeners();
+            }
+        });
+    }
+
+    window.addEventListener('focus', () => { establishProactiveHandshake(); });
 
     function loadIndividualChat(targetId, targetName) {
         activeChatTargetId = targetId;
@@ -340,7 +363,7 @@
         } else {
             history.forEach(msg => {
                 if (msg.text.startsWith('📥 [Download File]')) {
-                    appendDownloadButtonUi(msg.rawName || "File Asset", "#", msg.type);
+                    appendDownloadButtonUi(msg.rawName || "File Asset", msg.blobUrl, msg.type);
                 } else {
                     appendMessageUi(msg.text, msg.type);
                 }
@@ -348,9 +371,9 @@
         }
     }
 
-    function saveMessageToHistory(targetId, text, type, rawName = null) {
+    function saveMessageToHistory(targetId, text, type, rawName = null, blobUrl = null) {
         if (!chatHistories[targetId]) chatHistories[targetId] = [];
-        chatHistories[targetId].push({ text, type, rawName });
+        chatHistories[targetId].push({ text, type, rawName, blobUrl });
         localStorage.setItem('my_chat_histories', JSON.stringify(chatHistories));
     }
 
@@ -378,18 +401,21 @@
             item.classList.add('contact-item');
             item.id = `contact-${contact.id}`;
             
+            const isOnline = (dataConn && dataConn.peer === contact.id && dataConn.open);
             const currentBadgeVal = badgeCounts[contact.id] || 0;
             const badgeStyle = currentBadgeVal > 0 ? 'display: inline-block;' : 'display: none;';
-            const history = chatHistories[contact.id] || [];
-            const lastMsgText = history.length > 0 ? history[history.length - 1].text : `ID: ${contact.id}`;
             const imageAvatarSrc = contact.pfp || defaultPfpSvg;
 
             item.innerHTML = `
                 <div class="contact-main-wrapper">
-                    <img class="avatar" src="${imageAvatarSrc}" alt="avatar">
+                    <div style="position:relative;">
+                        <img class="avatar" src="${imageAvatarSrc}">
+                        <div style="width:10px; height:10px; background:${isOnline ? '#25D366' : '#ccc'}; 
+                                    position:absolute; bottom:0; right:0; border-radius:50%; border:2px solid white;"></div>
+                    </div>
                     <div class="contact-info">
                         <span class="contact-name">${contact.name}</span>
-                        <span class="contact-id">${lastMsgText}</span>
+                        <span class="contact-id">${contact.id}</span>
                     </div>
                 </div>
                 <span class="badge-pill" id="badge-${contact.id}" style="${badgeStyle}">${currentBadgeVal}</span>
@@ -468,7 +494,9 @@
     }
 
     function navigateToPage(index) {
-        currentScreenIndex = index; viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
+        currentScreenIndex = index; 
+        viewport.style.willChange = 'transform';
+        viewport.style.transform = `translateX(-${currentScreenIndex * 100}vw)`;
         document.getElementById('dot0').classList.toggle('active', currentScreenIndex === 0);
         document.getElementById('dot1').classList.toggle('active', currentScreenIndex === 1);
     }
@@ -508,14 +536,14 @@
 
     hangBtn.addEventListener('click', () => { if (currentCall) currentCall.close(); endCallUi(); });
 
-    peer.on('connection', (conn) => { dataConn = conn; setupDataListeners(); dataConn.on('open', () => { flushPendingMessagesForPeer(dataConn.peer); }); });
+    peer.on('connection', (conn) => { dataConn = conn; setupDataListeners(); dataConn.on('open', () => { flushPendingMessagesForPeer(dataConn.peer); renderContacts(); }); });
 
     sendBtn.addEventListener('click', () => {
         const msgText = messageInput.value.trim(); if (!activeChatTargetId || !msgText) return;
         if (dataConn && dataConn.open && dataConn.peer === activeChatTargetId) { sendMessagePayload(msgText); } else {
             saveMessageToHistory(activeChatTargetId, msgText, 'sent'); queueOfflineMessage(activeChatTargetId, msgText); messageInput.value = '';
             dataConn = peer.connect(activeChatTargetId);
-            dataConn.on('open', () => { setupDataListeners(); flushPendingMessagesForPeer(activeChatTargetId); });
+            dataConn.on('open', () => { setupDataListeners(); flushPendingMessagesForPeer(activeChatTargetId); renderContacts(); });
         }
     });
 
@@ -523,10 +551,18 @@
 
     function startHeartbeatLoop() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
-        heartbeatInterval = setInterval(() => { if (dataConn && dataConn.open) { dataConn.send({ type: 'heartbeat', text: 'ping' }); } else { clearInterval(heartbeatInterval); } }, 15000); 
+        heartbeatInterval = setInterval(() => {
+            if (dataConn && dataConn.open) {
+                dataConn.send({ type: 'heartbeat', text: 'ping' });
+            } else {
+                if (activeChatTargetId) {
+                    dataConn = peer.connect(activeChatTargetId);
+                    setupDataListeners();
+                }
+            }
+        }, 10000); 
     }
 
-    // FIXED: Correct parsing of mixed text objects and structural binary data types
     function setupDataListeners() {
         startHeartbeatLoop();
         dataConn.on('data', (payload) => {
@@ -541,12 +577,11 @@
                 renderContacts(); 
             }
 
-            // Binary parsing check
             if (payload && payload.type === 'file-transfer') {
                 const fileBlob = new Blob([payload.fileData], { type: payload.fileType });
                 const downloadUrl = URL.createObjectURL(fileBlob);
 
-                saveMessageToHistory(senderId, `📥 [Download File]: ${payload.fileName}`, 'received', payload.fileName);
+                saveMessageToHistory(senderId, `📥 [Download File]: ${payload.fileName}`, 'received', payload.fileName, downloadUrl);
                 triggerSystemNotification(`📁 Received file from ${matchingContact.name}`, payload.fileName);
 
                 if (activeChatTargetId === senderId && currentScreenIndex === 1) {
@@ -560,7 +595,6 @@
                 return;
             }
 
-            // Standard string message parsing
             const data = (payload && payload.text) ? payload.text : payload;
             saveMessageToHistory(senderId, data, 'received'); 
             triggerSystemNotification(`📩 Message from ${matchingContact.name}`, data);
@@ -600,17 +634,10 @@
             <div style="text-align: center;">
                 <p style="font-size:13px; font-weight:600; color:#333; margin-bottom:6px; word-break:break-all;">📁 ${fileName}</p>
                 <a href="${downloadUrl}" download="${fileName}" style="display: inline-block; background: #25D366; color: white; padding: 6px 14px; border-radius: 15px; text-decoration: none; font-size: 13px; font-weight: bold; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                    📥 Download File
+                    📥 Download
                 </a>
             </div>
         `;
-
-        let msgPressTimer = null;
-        msgElement.addEventListener('touchstart', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); }, {passive: true});
-        msgElement.addEventListener('touchend', () => { if(msgPressTimer) clearTimeout(msgPressTimer); }, {passive: true});
-        msgElement.addEventListener('mousedown', () => { msgPressTimer = setTimeout(() => { openAttachmentModal(); }, 600); });
-        msgElement.addEventListener('mouseup', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
-        msgElement.addEventListener('mouseleave', () => { if(msgPressTimer) clearTimeout(msgPressTimer); });
 
         messagesContainer.appendChild(msgElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -626,3 +653,4 @@
 </script>
 </body>
 </html>
+
