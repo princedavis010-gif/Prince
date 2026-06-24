@@ -8,7 +8,8 @@
 
     <meta property="og:title" content="DavisWebCall'nChat">
     <meta property="og:description" content="Connect instantly with your friends using secure P2P voice calls and real-time chat.">
-    <meta property="og:image" content="image.png">
+    <meta property="og:image" content="https://princedavis010-gif.github.io/Prince/image.png">
+    <meta property="og:url" content="https://princedavis010-gif.github.io/Prince/">
     <meta property="og:type" content="website">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -559,7 +560,7 @@
             } else {
                 badgeCounts[senderId] = (badgeCounts[senderId] || 0) + 1;
                 const badgeElement = document.getElementById(`badge-${senderId}`);
-                if(badgeElement) { badgeElement.innerText = badgeCounts[senderId]; badgeElement.style.display = 'inline-block'; }
+                if(badgeElement) { badgeElement.innerText = badgeCounts[badgeCounts[senderId]]; badgeElement.style.display = 'inline-block'; }
             }
             renderContacts();
         });
@@ -595,3 +596,8 @@
         statusDiv.innerText = "Call ended."; 
         toggleButtons(false); 
         if(bgWorker) bgWorker.postMessage('stop');
+    }
+</script>
+</body>
+</html>
+
