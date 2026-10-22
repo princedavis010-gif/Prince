@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#075e54">
+<title>Bright Chat</title>
+
+<style>
+:root {
+  --green: #075e54;
+  --light-green: #128c7e;
+  --accent: #25d366;
+  --background: #f4f7f6;
+  --white: #ffffff;
+  --text: #182b28;
+  --muted: #83918d;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  max-width: 650px;
+  margin: auto;
+  min-height: 100vh;
+}
+
+header {
+  background: var(--green);
+  color: white;
+  padding: 20px 17px 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 17px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.top-actions {
+  display: flex;
+  gap: 18px;
+  font-size: 22px;
+}
+
+.top-actions button {
+  color: white;
+  background: transparent;
+  border: none;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.search {
+  padding-bottom: 14px;
+}
+
+.search input {
+  width: 100%;
+  border: none;
+  border-radius: 25px;
+  padding: 13px 16px;
+  outline: none;
+  font-size: 15px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tab {
+  background: none;
+  color: #c7e3dc;
+  border: none;
+  padding: 13px 5px;
+  flex: 1;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: white;
+  border-bottom: 3px solid var(--accent);
+  font-weight: bold;
+}
+
+main {
+  padding-bottom: 85px;
+}
+
+.section-title {
+  padding: 17px;
+  color: var(--light-green);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.chat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: white;
+  border-bottom: 1px solid #edf1ef;
+  cursor: pointer;
+}
+
+.chat-item:active {
+  background: #eaf4f0;
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #d8eee6;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  position: relative;
+}
+
+.online::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--accent);
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.time {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.preview {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  background: var(--accent);
+  color: #063c29;
+  border-radius: 15px;
+  min-width: 20px;
+  padding: 4px 6px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.fab {
+  position: fixed;
+  bottom: 82px;
+  right: max(20px, calc((100vw - 650px)/2 + 20px));
+  width: 57px;
+  height: 57px;
+  border-radius: 18px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 27px;
+  box-shadow: 0 4px 12px #0002;
+  cursor: pointer;
+}
+
+.bottom {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 650px;
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  border-top: 1px solid #e7eeeb;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  z-index: 6;
+}
+
+.bottom button {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  cursor: pointer;
+}
+
+.bottom button span {
+  font-size: 22px;
+}
+
+.bottom button.active {
+  color: var(--light-green);
+  font-weight: bold;
+}
+
+.empty {
+  padding: 35px 20px;
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+.chat-window {
+  position: fixed;
+  inset: 0;
+  background: #e9f1ed;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  max-width: 650px;
+  margin: auto;
+}
+
+.chat-window.open {
+  display: flex;
+}
+
+.chat-head {
+  background: var(--green);
+  color: white;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-head button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 22px;
+}
+
+.chat-head .person {
+  flex: 1;
+}
+
+.chat-head small {
+  display: block;
+  margin-top: 4px;
+  color: #c7e3dc;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: white;
+  max-width: 85%;
+  overflow-wrap: anywhere;
+  align-self: flex-start;
+  box-shadow: 0 1px 2px #0001;
+}
+
+.message.mine {
+  align-self: flex-end;
+  background: #d7f8c6;
+}
+
+.message small {
+  display: block;
+  text-align: right;
+  color: #83918d;
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: #f8fbf9;
+}
+
+.composer input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 22px;
+  padding: 13px;
+  font-size: 15px;
+  outline: none;
+}
+
+.composer button {
+  border: none;
+  background: var(--light-green);
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 19px;
+}
+
+.action-button {
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 25px;
+  margin-top: 15px;
+}
+
+.status-row {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border-bottom: 1px solid #edf1ef;
+}
+
+.status-ring {
+  border: 3px solid var(--accent);
+  padding: 3px;
+  border-radius: 50%;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 11px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="top">
+    <div class="logo">BRIGHT<span>CHAT</span></div>
+    <div class="top-actions">
+      <button onclick="showSearch()" aria-label="Search">⌕</button>
+      <button onclick="newChat()" aria-label="New chat">✎</button>
+      <button onclick="showProfile()" aria-label="Profile">⋮</button>
+    </div>
+  </div>
+
+  <div class="search" id="searchBox" hidden>
+    <input id="searchInput" placeholder="Search chats..." oninput="filterChats()">
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showScreen('chats',this)">CHATS</button>
+    <button class="tab" onclick="showScreen('status',this)">STATUS</button>
+    <button class="tab" onclick="showScreen('groups',this)">GROUPS</button>
+    <button class="tab" onclick="showScreen('calls',this)">CALLS</button>
+  </div>
+</header>
+
+<main>
+  <section id="chats" class="screen active">
+    <div class="section-title">YOUR CONVERSATIONS</div>
+    <div id="chatList"></div>
+    <footer>BRIGHT CHAT · Connect with everyone 💚</footer>
+  </section>
+
+  <section id="status" class="screen">
+    <div class="section-title">STATUS UPDATES</div>
+
+    <div class="status-row">
+      <div class="avatar">👤</div>
+      <div>
+        <strong>My status</strong>
+        <div class="preview">Share a moment with friends</div>
+        <button class="action-button" onclick="addStatus()">＋ Add status</button>
+      </div>
+    </div>
+
+    <div id="statusList"></div>
+  </section>
+
+  <section id="groups" class="screen">
+    <div class="section-title">YOUR GROUPS</div>
+    <div id="groupList"></div>
+    <div class="empty">
+      Bring everyone together.<br>
+      <button class="action-button" onclick="createGroup()">＋ Create group</button>
+    </div>
+  </section>
+
+  <section id="calls" class="screen">
+    <div class="section-title">CALL HISTORY</div>
+    <div id="callList"></div>
+    <div class="empty">
+      Your calls will appear here.<br>
+      Voice and video calling require a connected calling service.
+    </div>
+  </section>
+
+  <section id="profile" class="screen">
+    <div class="section-title">YOUR PROFILE</div>
+    <div class="status-row">
+      <div class="avatar">👤</div>
+      <div>
+        <strong id="profileName">Bright Chat User</strong>
+        <div class="preview">Welcome to BRIGHT CHAT</div>
+      </div>
+    </div>
+    <div style="padding:17px">
+      <button class="action-button" onclick="editProfile()">Edit display name</button>
+      <p class="preview" style="margin-top:20px">
+        This demo stores local information in this browser.
+        It does not yet have real accounts or server-side messaging.
+      </p>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="fab" onclick="newChat()">＋</button>
+
+<nav class="bottom">
+  <button class="active" onclick="bottomNav('chats',this)">
+    <span>💬</span>Chats
+  </button>
+  <button onclick="bottomNav('status',this)">
+    <span>◉</span>Status
+  </button>
+  <button onclick="bottomNav('groups',this)">
+    <span>👥</span>Groups
+  </button>
+  <button onclick="bottomNav('calls',this)">
+    <span>📞</span>Calls
+  </button>
+  <button onclick="bottomNav('profile',this)">
+    <span>👤</span>Profile
+  </button>
+</nav>
+
+<div class="chat-window" id="chatWindow">
+  <div class="chat-head">
+    <button onclick="closeChat()">‹</button>
+    <div class="avatar" id="chatAvatar">👤</div>
+    <div class="person">
+      <strong id="chatTitle">Friend</strong>
+      <small>Local demo conversation</small>
+    </div>
+    <button onclick="callNotice('Voice')">📞</button>
+    <button onclick="callNotice('Video')">▣</button>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <form class="composer" onsubmit="sendMessage(event)">
+    <input id="messageInput" placeholder="Type a message..." autocomplete="off">
+    <button type="submit">➤</button>
+  </form>
+</div>
+
+<script>
+const initialChats = [
+  {id:1,name:"Ada",emoji:"👩🏽",message:"Hey! How are you?",time:"09:42",online:true},
+  {id:2,name:"Chidi",emoji:"👨🏽",message:"See you later bro!",time:"09:15",online:true},
+  {id:3,name:"Family Group",emoji:"👨‍👩‍👧‍👦",message:"Mum: Good morning everyone",time:"Yesterday"},
+  {id:4,name:"Blessing",emoji:"👩🏾",message:"Thank you so much ❤️",time:"Yesterday"},
+  {id:5,name:"Business Team",emoji:"💼",message:"Meeting starts at 2pm",time:"Monday"}
+];
+
+let chats = JSON.parse(localStorage.getItem("brightChats") || "null") || initialChats;
+let conversations = JSON.parse(localStorage.getItem("brightMessages") || "{}");
+let statuses = JSON.parse(localStorage.getItem("brightStatuses") || "null") || [
+  {name:"Ada",emoji:"👩🏽",text:"Enjoying my day ☀️"},
+  {name:"Chidi",emoji:"👨🏽",text:"Keep pushing 💪"}
+];
+let groups = JSON.parse(localStorage.getItem("brightGroups") || "[]");
+let calls = JSON.parse(localStorage.getItem("brightCalls") || "[]");
+let activeChat = null;
+
+function save() {
+  localStorage.setItem("brightChats",JSON.stringify(chats));
+  localStorage.setItem("brightMessages",JSON.stringify(conversations));
+  localStorage.setItem("brightStatuses",JSON.stringify(statuses));
+  localStorage.setItem("brightGroups",JSON.stringify(groups));
+  localStorage.setItem("brightCalls",JSON.stringify(calls));
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function renderChats() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+
+  chats.forEach(chat => {
+    const row = document.createElement("div");
+    row.className = "chat-item";
+    row.dataset.name = chat.name.toLowerCase();
+
+    row.innerHTML = `
+      <div class="avatar ${chat.online ? "online" : ""}">
+        ${escapeHTML(chat.emoji)}
+      </div>
+      <div class="chat-info">
+        <div class="chat-line">
+          <span class="chat-name">${escapeHTML(chat.name)}</span>
+          <span class="time">${escapeHTML(chat.time || "")}</span>
+        </div>
+        <div class="chat-line">
+          <span class="preview">${escapeHTML(chat.message || "Start a conversation")}</span>
+          ${chat.unread ? `<span class="badge">${chat.unread}</span>` : ""}
+        </div>
+      </div>`;
+    row.onclick = () => openChat(chat.id);
+    list.appendChild(row);
+  });
+}
+
+function showScreen(name,button) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(name).classList.add("active");
+
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  if(button && button.classList.contains("tab")) button.classList.add("active");
+
+  document.querySelectorAll(".bottom button").forEach(b => b.classList.remove("active"));
+  const bottomButton = [...document.querySelectorAll(".bottom button")]
+    .find(b => b.textContent.toLowerCase().includes(name === "profile" ? "profile" : name));
+  if(bottomButton) bottomButton.classList.add("active");
+
+  document.getElementById("fab").style.display =
+    ["chats","status","groups"].includes(name) ? "block" : "none";
+
+  if(name === "status") renderStatuses();
+  if(name === "groups") renderGroups();
+  if(name === "calls") renderCalls();
+}
+
+function bottomNav(name,button) {
+  showScreen(name);
+}
+
+function showSearch() {
+  const box = document.getElementById("searchBox");
+  box.hidden = !box.hidden;
+  if(!box.hidden) document.getElementById("searchInput").focus();
+}
+
+function filterChats() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  document.querySelectorAll("#chatList .chat-item").forEach(row => {
+    row.style.display = row.dataset.name.includes(q) ? "flex" : "none";
+  });
+}
+
+function newChat() {
+  const name = prompt("Enter your friend's display name:");
+  if(!name || !name.trim()) return;
+
+  let existing = chats.find(c => c.name.toLowerCase() === name.trim().toLowerCase());
+
+  if(!existing) {
+    existing = {
+      id:Date.now(),
+      name:name.trim(),
+      emoji:"🙂",
+      message:"New conversation",
+      time:"Now"
+    };
+    chats.unshift(existing);
+    save();
+    renderChats();
+  }
+
+  openChat(existing.id);
+}
+
+function openChat(id) {
+  activeChat = chats.find(c => c.id === id);
+  if(!activeChat) return;
+
+  activeChat.unread = 0;
+  document.getElementById("chatTitle").textContent = activeChat.name;
+  document.getElementById("chatAvatar").textContent = activeChat.emoji;
+  document.getElementById("chatWindow").classList.add("open");
+
+  renderMessages();
+  renderChats();
+  save();
+}
+
+function closeChat() {
+  document.getElementById("chatWindow").classList.remove("open");
+  activeChat = null;
+}
+
+function renderMessages() {
+  if(!activeChat) return;
+
+  const area = document.getElementById("messages");
+  const items = conversations[activeChat.id] || [];
+
+  area.innerHTML = items.map(m => `
+    <div class="message ${m.mine ? "mine" : ""}">
+      ${escapeHTML(m.text)}
+      <small>${escapeHTML(m.time || "")}</small>
+    </div>
+  `).join("");
+
+  area.scrollTop = area.scrollHeight;
+}
+
+function sendMessage(event) {
+  event.preventDefault();
+  if(!activeChat) return;
+
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+  if(!text) return;
+
+  if(!conversations[activeChat.id]) conversations[activeChat.id] = [];
+
+  conversations[activeChat.id].push({
+    text,
+    mine:true,
+    time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})
+  });
+
+  activeChat.message = "You: " + text;
+  activeChat.time = "Now";
+
+  input.value = "";
+  save();
+  renderMessages();
+  renderChats();
+}
+
+function renderStatuses() {
+  const list = document.getElementById("statusList");
+  list.innerHTML = "";
+
+  statuses.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "status-row";
+    row.innerHTML = `
+      <div class="status-ring">
+        <div class="avatar">${escapeHTML(s.emoji || "🙂")}</div>
+      </div>
+      <div>
+        <strong>${escapeHTML(s.name)}</strong>
+        <div class="preview">${escapeHTML(s.text)}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function addStatus() {
+  const text = prompt("What would you like to share?");
+  if(!text || !text.trim()) return;
+
+  statuses.unshift({name:"You",emoji:"👤",text:text.trim()});
+  save();
+  renderStatuses();
+}
+
+function renderGroups() {
+  const list = document.getElementById("groupList");
+  list.innerHTML = "";
+
+  groups.forEach(g => {
+    const row = document.createElement("div");
+    row.className = "chat-item";
+    row.innerHTML = `
+      <div class="avatar">👥</div>
+      <div class="chat-info">
+        <div class="chat-name">${escapeHTML(g.name)}</div>
+        <div class="preview">Group created on this device</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function createGroup() {
+  const name = prompt("Enter a group name:");
+  if(!name || !name.trim()) return;
+
+  groups.push({name:name.trim()});
+  save();
+  renderGroups();
+}
+
+function renderCalls() {
+  const list = document.getElementById("callList");
+  list.innerHTML = "";
+
+  calls.forEach(c => {
+    const row = document.createElement("div");
+    row.className = "chat-item";
+    row.innerHTML = `
+      <div class="avatar">${escapeHTML(c.emoji || "👤")}</div>
+      <div class="chat-info">
+        <div class="chat-name">${escapeHTML(c.name)}</div>
+        <div class="preview">${escapeHTML(c.type)} call · ${escapeHTML(c.time)}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function callNotice(type) {
+  alert(type + " calling is not connected yet. We'll add a real calling service in a later version.");
+}
+
+function showProfile() {
+  showScreen("profile");
+}
+
+function editProfile() {
+  const current = localStorage.getItem("brightProfileName") || "Bright Chat User";
+  const name = prompt("Choose your display name:",current);
+
+  if(name && name.trim()) {
+    localStorage.setItem("brightProfileName",name.trim());
+    document.getElementById("profileName").textContent = name.trim();
+  }
+}
+
+document.getElementById("profileName").textContent =
+  localStorage.getItem("brightProfileName") || "Bright Chat User";
+
+renderChats();
+renderStatuses();
+renderGroups();
+renderCalls();
+</script>
+
+</body>
+</html>
